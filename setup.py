@@ -49,6 +49,9 @@ def get_version():
     return line.split()[1].strip('()')
 
 
+py_version = get_version()
+
+
 def run_pkgconfig(*cmdline):
     cmdline = ['pkg-config'] + list(cmdline)
     try:
