@@ -27,7 +27,6 @@ import subprocess as ipc
 import sys
 
 import setuptools
-from packaging.version import Version, parse as parse_version
 from setuptools.command.build_ext import build_ext as _build_ext
 from setuptools.command.sdist import sdist as _sdist
 from wheel.bdist_wheel import bdist_wheel
@@ -120,6 +119,7 @@ def get_djvulibre_version():
     if version is None:
         raise PackageVersionError('cannot determine DjVuLibre version')
     version = version or '0'
+    from packaging.version import Version
     return Version(version)
 
 
@@ -127,6 +127,7 @@ class build_ext(_build_ext):
 
     def run(self):
         djvulibre_version = get_djvulibre_version()
+        from packaging.version import Version
         if djvulibre_version != Version('0') and djvulibre_version < Version('3.5.21'):
             raise PackageVersionError('DjVuLibre >= 3.5.21 is required')
         compiler_flags = pkgconfig_build_flags('ddjvuapi')
@@ -253,6 +254,7 @@ setup_params = dict(
         if cmd is not None
     ),
     py_modules=['djvu.const'],
+    build_requires=['setuptools', 'wheel', 'Cython', 'packaging'],
     **meta
 )
 
