@@ -166,7 +166,7 @@ class build_ext(_build_ext):
             depends = [source, self.config_path] + ext.depends
             print('cythoning {ext.name!r} extension'.format(ext=ext))
             def build_c(source, target):
-                subprocess.run([
+                ipc.run([
                     sys.executable, '-m', 'cython',
                     '-I', os.path.dirname(self.config_path),
                     '-o', target,
