@@ -26,15 +26,9 @@ source_suffix = '.rst'
 source_encoding = 'UTF-8'
 master_doc = 'index'
 
-project = 'python-djvulibre'
-
-def get_version():
-    path = os.path.join(os.path.dirname(__file__), 'doc', 'changelog')
-    with open(path, encoding='UTF-8') as fd:
-        line = fd.readline()
-    return line.split()[1].strip('()')
-
-version = release = get_version()
+import setup as _setup
+project = _setup.setup_params['name']
+version = release = _setup.py_version
 
 pygments_style = 'sphinx'
 
