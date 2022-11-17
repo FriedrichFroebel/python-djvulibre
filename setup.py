@@ -256,6 +256,9 @@ setup_params = dict(
     **meta
 )
 
-setuptools.setup(**setup_params)
+
+if __name__ == '__main__':
+    # Required for Sphinx.
+    setuptools.setup(**setup_params)
 
 # vim:ts=4 sts=4 sw=4 et
