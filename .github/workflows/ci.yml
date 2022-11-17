@@ -50,7 +50,7 @@ jobs:
         echo CPATH=~/.local/include/ >> $GITHUB_ENV
         echo PKG_CONFIG_PATH=~/.local/lib/pkgconfig/ >> $GITHUB_ENV
         echo LD_LIBRARY_PATH=~/.local/lib/ >> $GITHUB_ENV
-    - name: update PIP and setuptools
+    - name: update PIP
       run:
         python -m pip install --upgrade pip
     - name: install wheel
