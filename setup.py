@@ -30,8 +30,11 @@ import setuptools
 from packaging.version import Version, parse as parse_version
 from setuptools.command.build_ext import build_ext as _build_ext
 from setuptools.command.sdist import sdist as _sdist
-from setuptools.errors import PackageDiscoveryError
 from wheel.bdist_wheel import bdist_wheel
+
+
+class PackageVersionError(Exception):
+    pass
 
 
 def ext_modules():
@@ -110,7 +113,7 @@ def pkgconfig_version(package):
 def get_djvulibre_version():
     version = pkgconfig_version('ddjvuapi')
     if version is None:
-        raise PackageDiscoveryError('cannot determine DjVuLibre version')
+        raise PackageVersionError('cannot determine DjVuLibre version')
     version = version or '0'
     return Version(version)
 
@@ -120,7 +123,7 @@ class build_ext(_build_ext):
     def run(self):
         djvulibre_version = get_djvulibre_version()
         if djvulibre_version != Version('0') and djvulibre_version < Version('3.5.21'):
-            raise PackageDiscoveryError('DjVuLibre >= 3.5.21 is required')
+            raise PackageVersionError('DjVuLibre >= 3.5.21 is required')
         compiler_flags = pkgconfig_build_flags('ddjvuapi')
         for extension in self.extensions:
             for attr, flags in compiler_flags.items():
