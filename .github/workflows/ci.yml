@@ -27,6 +27,19 @@ jobs:
     - name: apt install deps
       run: |
         sudo apt-get install language-pack-ja ghostscript
+    - name: install ccache
+      run: |
+        sudo apt-get install ccache
+        echo "/usr/lib/ccache:$PATH" >> $GITHUB_PATH
+    - name: restore ccache data
+      uses: actions/cache@v2
+      with:
+        path: ~/.ccache
+        key:
+          ccache-${DJVULIBRE_VERSION}-py${{ matrix.python }}
+        restore-keys:
+          ccache-${DJVULIBRE_VERSION}-py${{ matrix.python }}
+      if: ${{ matrix.gamera != 'master' }}
     - name: install DjVuLibre
       run: |
         wget https://downloads.sourceforge.net/project/djvu/DjVuLibre/${DJVULIBRE_VERSION}/djvulibre-${DJVULIBRE_VERSION}.tar.gz
@@ -34,7 +47,7 @@ jobs:
         (cd djvulibre-*/ && ./configure --disable-desktopfiles --prefix ~/.local CXXFLAGS="-fpermissive -include cstddef" || cat config.log /fail)
         make -C djvulibre-*/libdjvu/ install
         make -C djvulibre-*/tools/ install
-        make -C djvulibre-*/ install; fi
+        make -C djvulibre-*/ install
         echo CPATH=~/.local/include/ >> $GITHUB_ENV
         echo PKG_CONFIG_PATH=~/.local/lib/pkgconfig/ >> $GITHUB_ENV
         echo LD_LIBRARY_PATH=~/.local/lib/ >> $GITHUB_ENV
