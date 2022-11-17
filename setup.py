@@ -251,7 +251,7 @@ setup_params = dict(
     ],
     cmdclass=dict(
         (cmd.__name__, cmd)
-        for cmd in (build_ext, sdist, bdist_wheel)
+        for cmd in (build_ext, build_sphinx, sdist, bdist_wheel)
         if cmd is not None
     ),
     py_modules=['djvu.const'],
