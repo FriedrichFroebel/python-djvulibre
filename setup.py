@@ -190,13 +190,11 @@ if sphinx_setup_command:
             # typically a wrong choice: it contains djvu/__init__.py but not
             # the extension modules. Prepend the directory that build_ext would
             # use instead.
-            build_ext_command = self.get_finalized_command('build_ext')
-            sys.path[:0] = [build_ext_command.build_lib]
-            print(build_ext_command)
+            build_ext = self.get_finalized_command('build_ext')
+            sys.path[:0] = [build_ext.build_lib]
             for ext in ext_modules:
                 __import__('djvu.' + ext)
             del sys.path[0]
-            print(sys.path)
             sphinx_setup_command.BuildDoc.run(self)
 else:
     build_sphinx = None

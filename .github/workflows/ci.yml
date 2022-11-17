@@ -74,7 +74,7 @@ jobs:
     - name: build the docs
       run: |
         python -m pip install sphinx
-        PYTHONPATH=$PWD sphinx-build -W -b doctest doc/api/ tmp
+        PYTHONPATH=$PWD sphinx-build -W -v -v -v -b doctest doc/api/ tmp
     - name: check reST syntax
       run:
         private/check-rst
