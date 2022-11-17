@@ -254,7 +254,7 @@ setup_params = dict(
         if cmd is not None
     ),
     py_modules=['djvu.const'],
-    build_requires=['setuptools', 'wheel', 'Cython', 'packaging'],
+    setup_requires=['setuptools', 'wheel', 'Cython', 'packaging'],
     **meta
 )
 
