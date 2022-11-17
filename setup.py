@@ -142,7 +142,8 @@ class build_ext(_build_ext):
                 old_config = fp.read()
         except IOError:
             old_config = ''
-        if str.join('\n', new_config).strip() != old_config.strip():
+        new_config = '\n'.join(new_config)
+        if new_config.strip() != old_config.strip():
             print('creating {conf!r}'.format(conf=self.config_path))
             with open(self.config_path, mode='w') as fd:
                 fd.write(new_config)
