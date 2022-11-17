@@ -209,19 +209,14 @@ ELSE:
     cdef extern from 'Python.h':
         FILE* file_to_cfile 'PyFile_AsFile'(object)
         int is_file 'PyFile_Check'(object)
-IF WINDOWS:
-    cdef extern from 'io.h' nogil:
-        int dup(int)
-ELSE:
-    from posix.unistd cimport dup
+from posix.unistd cimport dup
 from libc.stdio cimport fclose
 from libc.stdio cimport fdopen
 
-IF HAVE_LANGINFO_H:
-    cdef extern from 'langinfo.h':
-        ctypedef enum nl_item:
-            CODESET
-        char *nl_langinfo(nl_item item)
+cdef extern from 'langinfo.h':
+    ctypedef enum nl_item:
+        CODESET
+    char *nl_langinfo(nl_item item)
 
 DDJVU_VERSION = ddjvu_code_get_version()
 
@@ -2490,12 +2485,7 @@ cdef class ErrorMessage(Message):
 
     cdef object _init(self):
         Message._init(self)
-        IF HAVE_LANGINFO_H:
-            locale_encoding = charp_to_string(nl_langinfo(CODESET))
-        ELSE:
-            # Presumably a Windows system.
-            import locale
-            locale_encoding = locale.getpreferredencoding()
+        locale_encoding = charp_to_string(nl_langinfo(CODESET))
         if self.ddjvu_message.m_error.message != NULL:
             # Things can go awry if user calls setlocale() between the time the
             # message was created and the time it was received. Let's hope it
@@ -2535,12 +2525,7 @@ cdef class ErrorMessage(Message):
             return self.message
     ELSE:
         def __str__(self):
-            IF HAVE_LANGINFO_H:
-                locale_encoding = charp_to_string(nl_langinfo(CODESET))
-            ELSE:
-                # Presumably a Windows system.
-                import locale
-                locale_encoding = locale.getpreferredencoding()
+            locale_encoding = charp_to_string(nl_langinfo(CODESET))
             return self.message.encode(locale_encoding, 'replace')
         def __unicode__(self):
             return self.message

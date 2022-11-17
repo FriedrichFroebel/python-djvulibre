@@ -130,7 +130,7 @@ class build_ext(_build_ext):
                 getattr(extension, attr)
                 setattr(extension, attr, flags)
         new_config = [
-            'DEF PY3K = {0}'.format(sys.version_info >= (3, 0)),
+            'DEF PY3K = {0}'.format(sys.version_info >= (3, 0)),  # TODO: Drop.
             'DEF PYTHON_DJVULIBRE_VERSION = b"{0}"'.format(py_version),
             'DEF HAVE_MINIEXP_IO_T = {0}'.format(djvulibre_version >= Version('3.5.26')),
         ]
