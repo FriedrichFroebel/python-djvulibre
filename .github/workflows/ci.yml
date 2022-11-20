@@ -106,7 +106,7 @@ jobs:
     - name: check bdist file
       run: |
         unzip -l dist/*.whl | { ! grep -F /djvu/config.pxi; }
-        unzip -l dist/*.whl | { grep "sexpr.cpython-3[0-9]+-x86_64-linux-gnu.so"; }
+        unzip -l dist/*.whl | { grep "sexpr\.cpython-3[[:digit:]]\+-x86_64-linux-gnu\.so"; }
     - name: install via bdist_wheel
       run:
         python -m pip install dist/*.whl
