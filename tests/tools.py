@@ -66,22 +66,6 @@ class TestCase(_TestCase):
         assert False
 
     
-if py3k:
-    u = str
-else:
-    def u(s):
-        return s.decode('UTF-8')
-
-if py3k:
-    def b(s):
-        return s.encode('UTF-8')
-else:
-    b = bytes
-
-long = type(1 << 999)
-
-unicode = type(u(''))
-
 @contextlib.contextmanager
 def interim(obj, **override):
     copy = dict((key, getattr(obj, key)) for key in override)

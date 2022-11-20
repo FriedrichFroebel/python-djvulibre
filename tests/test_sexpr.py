@@ -75,8 +75,8 @@ class IntExpressionsTestCase(SexprTestCase):
         self.assertEqual(s, str(n))
         # __eq__(), __ne__():
         self.assertEqual(x, Expression(n))
-        self.assertNotEqualx, n)
-        self.assertNotEqualx, Expression(n + 37))
+        self.assertNotEqual(x, n)
+        self.assertNotEqual(x, Expression(n + 37))
         # __hash__():
         self.assertEqual(hash(x), n)
         # __bool__() / __nonzero__():
@@ -135,8 +135,8 @@ class SymbolsTestCase(SexprTestCase):
         self.assertIs(symbol, Symbol(name))
         self.assertEqual(str(symbol), sname)
         self.assertEqual(unicode(symbol), uname)
-        self.assertNotEqualsymbol, bname)
-        self.assertNotEqualsymbol, uname)
+        self.assertNotEqual(symbol, bname)
+        self.assertNotEqual(symbol, uname)
         self.assertEqual(hash(symbol), hash(bname))
         self.assertPickleEqual(symbol)
         return symbol
@@ -182,8 +182,8 @@ class SymbolExpressionsTestCase(SexprTestCase):
         self.assertRepr(x, repr(Expression.from_string(uname)))
         # __eq__(), __ne__():
         self.assertEqual(x, Expression(sym))
-        self.assertNotEqualx, Expression(name))
-        self.assertNotEqualx, sym)
+        self.assertNotEqual(x, Expression(name))
+        self.assertNotEqual(x, sym)
         # __hash__():
         self.assertEqual(
             hash(x),
@@ -213,8 +213,8 @@ class StringExpressionsTestCase(SexprTestCase):
         self.assertEqual(str(x), '"eggs"')
         self.assertRepr(x, repr(Expression.from_string(str(x))))
         self.assertEqual(x, Expression('eggs'))
-        self.assertNotEqualx, Expression(Symbol('eggs')))
-        self.assertNotEqualx, 'eggs')
+        self.assertNotEqual(x, Expression(Symbol('eggs')))
+        self.assertNotEqual(x, 'eggs')
         self.assertEqual(hash(x), hash('eggs'))
         self.assertPickleEqual(x)
 
@@ -286,8 +286,8 @@ class ListExpressionsTestCase(SexprTestCase):
         with self.assertRaisesString(TypeError, 'can only assign a list expression'):
             x[:] = 0
         self.assertEqual(x, Expression((1, 3, 5, 7)))
-        self.assertNotEqualx, Expression((2, 4, 6)))
-        self.assertNotEqualx, (1, 3, 5, 7))
+        self.assertNotEqual(x, Expression((2, 4, 6)))
+        self.assertNotEqual(x, (1, 3, 5, 7))
         with self.assertRaisesString(TypeError, "unhashable type: 'ListExpression'"):
             hash(x)
 
