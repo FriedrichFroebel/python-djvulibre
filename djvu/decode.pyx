@@ -1912,8 +1912,16 @@ cdef object allocate_image_memory(long width, long height, object buffer, void *
     else:
         result = buffer
         memview = memoryview(buffer).cast('c')
+        # Avoid:
+        #   warning: comparison of integer expressions of different signedness: ‘size_t’ {aka ‘long unsigned int’} and ‘Py_ssize_t’ {aka ‘long int’}
+        cdef Py_ssize_t c_memview_size
+        memview_size = len(memview)
+        try:
+            c_memview_size = memview_size
+        except OverflowError:
+            raise MemoryError('Unable to convert memory view size {0}.'.format(memview_size))
         if len(memview) < c_requested_size:
-            raise ValueError('Image buffer is too small ({0} > {1})'.format(c_requested_size, len(memview)))
+            raise ValueError('Image buffer is too small ({0} > {1})'.format(c_requested_size, c_memview_size))
         memory[0] = &memview[0]
     return (result, memview)
 
