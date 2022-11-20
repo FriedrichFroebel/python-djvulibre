@@ -13,8 +13,6 @@
 # or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
 # more details.
 
-from __future__ import division
-
 if __name__ != '__main__':
     raise ImportError('This module is not intended for import')
 
@@ -26,18 +24,13 @@ scale = dict(kB=1024)
 
 def mem_info(key='VmSize'):
     try:
-        file = open(proc_status)
-        for line in file:
+        fd = open(proc_status)
+        for line in fd.readlines():
             if line.startswith('{key}:'.format(key=key)):
                 _, value, unit = line.split(None, 3)
                 return int(value) * scale[unit]
     finally:
-        file.close()
-
-try:
-    range = xrange
-except NameError:
-    pass
+        fd.close()
 
 step = 1 << 17
 while True:
