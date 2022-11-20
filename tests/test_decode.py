@@ -82,7 +82,7 @@ images = os.path.join(os.path.dirname(__file__), 'images', '')
 
 
 class DecodeTestCase(TestCase):
-    def run(self, *cmd, **kwargs):
+    def run_command(self, *cmd, **kwargs):
         stdin = kwargs.pop('stdin', None)
         env = dict(os.environ)
         for key, value in kwargs.items():
@@ -115,7 +115,7 @@ class DecodeTestCase(TestCase):
             b'\x16\x01\x53\x6A\x62\x7A\x00\x00\x00\x04\xBC\x73\x1B\xD7'
         )
         file.flush()
-        (stdout, stderr) = self.run('djvused', '-s', file.name, stdin=commands.encode(locale_encoding))
+        (stdout, stderr) = self.run_command('djvused', '-s', file.name, stdin=commands.encode(locale_encoding))
         self.assertEqual(stdout, ''.encode(locale_encoding))
         self.assertEqual(stderr, ''.encode(locale_encoding))
         return file
@@ -294,7 +294,7 @@ class DocumentsTestCase(DecodeTestCase):
         self.assertEqual(document.type, DOCUMENT_TYPE_BUNDLED)
         self.assertEqual(len(document.pages), 2)
         self.assertEqual(len(document.files), 3)
-        (stdout0, stderr0) = self.run('djvudump', original_filename, LC_ALL='C')
+        (stdout0, stderr0) = self.run_command('djvudump', original_filename, LC_ALL='C')
         self.assertEqual(stderr0, b'')
         stdout0 = stdout0.replace(b'\r\n', b'\n')
         tmpdir = tempfile.mkdtemp()
@@ -305,7 +305,7 @@ class DocumentsTestCase(DecodeTestCase):
             self.assertTrue(job.is_done)
             self.assertFalse(job.is_error)
             tmp.close()
-            (stdout, stderr) = self.run('djvudump', tmp.name, LC_ALL='C')
+            (stdout, stderr) = self.run_command('djvudump', tmp.name, LC_ALL='C')
             self.assertEqual(stderr, b'')
             stdout = stdout.replace(b'\r\n', b'\n')
             self.assertEqual(stdout, stdout0)
@@ -320,7 +320,7 @@ class DocumentsTestCase(DecodeTestCase):
             self.assertTrue(job.is_done)
             self.assertFalse(job.is_error)
             tmp.close()
-            stdout, stderr = self.run('djvudump', tmp.name, LC_ALL='C')
+            stdout, stderr = self.run_command('djvudump', tmp.name, LC_ALL='C')
             self.assertEqual(stderr, b'')
             stdout = stdout.replace(b'\r\n', b'\n')
             stdout0 = stdout0.split(b'\n')
@@ -339,7 +339,7 @@ class DocumentsTestCase(DecodeTestCase):
             self.assertEqual(type(job), SaveJob)
             self.assertTrue(job.is_done)
             self.assertFalse(job.is_error)
-            (stdout, stderr) = self.run('djvudump', tmpfname, LC_ALL='C')
+            (stdout, stderr) = self.run_command('djvudump', tmpfname, LC_ALL='C')
             self.assertEqual(stderr, b'')
             stdout = stdout.replace(b'\r\n', b'\n')
             stdout = stdout.split(b'\n')
@@ -359,7 +359,7 @@ class DocumentsTestCase(DecodeTestCase):
             self.assertEqual(type(job), SaveJob)
             self.assertTrue(job.is_done)
             self.assertFalse(job.is_error)
-            (stdout, stderr) = self.run('djvudump', tmpfname, LC_ALL='C')
+            (stdout, stderr) = self.run_command('djvudump', tmpfname, LC_ALL='C')
             stdout = stdout.replace(b'\r\n', b'\n')
             self.assertEqual(stderr, b'')
             stdout = stdout.split(b'\n')
@@ -387,7 +387,7 @@ class DocumentsTestCase(DecodeTestCase):
             self.assertEqual(type(job), SaveJob)
             self.assertTrue(job.is_done)
             self.assertFalse(job.is_error)
-            stdout, stderr = self.run('ps2ascii', tmp.name, LC_ALL='C')
+            stdout, stderr = self.run_command('ps2ascii', tmp.name, LC_ALL='C')
             self.assertEqual(stderr, b'')
             stdout = re.sub(br'[\x00\s]+', b' ', stdout)
             self.assertEqual(stdout, b' ')
@@ -396,7 +396,7 @@ class DocumentsTestCase(DecodeTestCase):
             self.assertEqual(type(job), SaveJob)
             self.assertTrue(job.is_done)
             self.assertFalse(job.is_error)
-            stdout, stderr = self.run('ps2ascii', tmp.name, LC_ALL='C')
+            stdout, stderr = self.run_command('ps2ascii', tmp.name, LC_ALL='C')
             self.assertEqual(stderr, b'')
             stdout = stdout.decode('ASCII')
             stdout = re.sub(r'[\x00\s]+', ' ', stdout)
