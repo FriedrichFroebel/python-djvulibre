@@ -22,7 +22,7 @@ import pickle
 import shutil
 import sys
 import tempfile
-from collections import abc
+from collections.abc import Iterator, MutableSequence
 
 from djvu.sexpr import (
     Expression,
@@ -61,10 +61,6 @@ class IntExpressionsTestCase(SexprTestCase):
         # __int__():
         i = int(x)
         self.assertEqual(type(i), int)
-        self.assertEqual(i, n)
-        # __long__():
-        i = long(x)
-        self.assertEqual(type(i), long)
         self.assertEqual(i, n)
         # __float__():
         i = float(x)
@@ -134,7 +130,7 @@ class SymbolsTestCase(SexprTestCase):
         self.assertEqual(symbol, Symbol(name))
         self.assertIs(symbol, Symbol(name))
         self.assertEqual(str(symbol), sname)
-        self.assertEqual(unicode(symbol), uname)
+        self.assertEqual(symbol, uname)
         self.assertNotEqual(symbol, bname)
         self.assertNotEqual(symbol, uname)
         self.assertEqual(hash(symbol), hash(bname))
@@ -178,7 +174,7 @@ class SymbolExpressionsTestCase(SexprTestCase):
         self.assertEqual(str(x), sname)
         self.assertRepr(x, repr(Expression.from_string(sname)))
         # __unicode__():
-        self.assertEqual(unicode(x), uname)
+        self.assertEqual(x, uname)
         self.assertRepr(x, repr(Expression.from_string(uname)))
         # __eq__(), __ne__():
         self.assertEqual(x, Expression(sym))
@@ -247,7 +243,7 @@ class ListExpressionsTestCase(SexprTestCase):
         self.assertRepr(x, "Expression([[1, 2], 3, [4, 5, Symbol('baz')], ['quux']])")
         y = Expression(x)
         self.assertRepr(y, repr(x))
-        assert_false(x is y)
+        self.assertFalse(x is y)
         self.assertEqual(x.value, ((1, 2), 3, (4, 5, Symbol('baz')), ('quux',)))
         self.assertEqual(x.lvalue, [[1, 2], 3, [4, 5, Symbol('baz')], ['quux']])
         self.assertEqual(str(x), '((1 2) 3 (4 5 baz) ("quux"))')
@@ -477,8 +473,8 @@ class ListExpressionsTestCase(SexprTestCase):
 
     def test_abc(self):
         x = Expression(())
-        self.assertIsInstance(x, collections_abc.MutableSequence)
-        self.assertIsInstance(iter(x), collections_abc.Iterator)
+        self.assertIsInstance(x, MutableSequence)
+        self.assertIsInstance(iter(x), Iterator)
 
     def test_pickle(self):
         for lst in (), (1, 2, 3), (1, (2, 3)):
@@ -515,7 +511,7 @@ class ExpressionParserTestCase(SexprTestCase):
         )
 
     def test_bad_unicode_io(self):
-        fp = StringIO(chr(0xD800))
+        fp = io.StringIO(chr(0xD800))
         with self.assertRaises(UnicodeEncodeError):
             Expression.from_stream(fp)
 
@@ -566,7 +562,7 @@ class ExpressionParserAsciiTestCase(SexprTestCase):
             fp.write(self.expr.encode('UTF-8'))
             fp.flush()
             fp.seek(0)
-            self.t(fp)
+            self.check(fp)
 
 class ExpressionParserNonAsciiTestCase(ExpressionParserAsciiTestCase):
 
@@ -614,7 +610,7 @@ class ExpressionWriterTestCase(SexprTestCase):
 
     def test_escape_unicode_type(self):
         expr = Expression(23)
-        fp = StringIO()
+        fp = io.StringIO()
         for v in True, False, 1, 0, 'yes', '':
             expr.print_into(fp, escape_unicode=v)
             expr.as_string(escape_unicode=v)

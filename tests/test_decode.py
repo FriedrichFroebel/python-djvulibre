@@ -159,13 +159,12 @@ class DocumentsTestCase(DecodeTestCase):
             context.new_document(FileUri(path))
         message = context.get_message()
         self.assertEqual(type(message), ErrorMessage)
-        self.assertEqual(type(message.message), unicode)
+        self.assertEqual(type(message.message), str)
         self.assertEqual(
             message.message,
             "[1-11711] Failed to open '{path}': {msg}.".format(path=path, msg=c_message)
         )
         self.assertEqual(str(message), message.message)
-        self.assertEqual(unicode(message), message.message)
 
     def test_nonexistent_ja(self):
         skip_unless_c_messages()
@@ -192,7 +191,7 @@ class DocumentsTestCase(DecodeTestCase):
                 context.new_document(FileUri(path))
             message = context.get_message()
             self.assertEqual(type(message), ErrorMessage)
-            self.assertEqual(type(message.message), unicode)
+            self.assertEqual(type(message.message), str)
             self.assertEqual(
                 message.message,
                 "[1-11711] Failed to open '{path}': {msg}.".format(path=path, msg=c_message)
@@ -201,7 +200,7 @@ class DocumentsTestCase(DecodeTestCase):
                 str(message),
                 "[1-11711] Failed to open '{path}': {msg}.".format(path=path, msg=c_message)
             )
-            self.assertEqual(unicode(message), message.message)
+            self.assertEqual(str(message), message.message)
 
     def test_new_document(self):
         context = Context()
@@ -231,13 +230,13 @@ class DocumentsTestCase(DecodeTestCase):
         self.assertEqual(page.n, 0)
         self.assertIs(file.size, None)
         self.assertEqual(file.id, 'test1.djvu')
-        self.assertEqual(type(file.id), unicode)
+        self.assertEqual(type(file.id), str)
         self.assertEqual(file.name, 'test1.djvu')
-        self.assertEqual(type(file.name), unicode)
+        self.assertEqual(type(file.name), str)
         self.assertEqual(file.title, 'test1.djvu')
-        self.assertEqual(type(file.title), unicode)
+        self.assertEqual(type(file.title), str)
         dump = document.files[0].dump
-        self.assertEqual(type(dump), unicode)
+        self.assertEqual(type(dump), str)
         self.assertEqual(
             [line for line in dump.splitlines()], [
                 '  FORM:DJVU [83] ',
@@ -258,9 +257,9 @@ class DocumentsTestCase(DecodeTestCase):
         file = page.file
         self.assertEqual(type(file), File)
         self.assertEqual(file.id, 'test1.djvu')
-        self.assertEqual(type(file.id), unicode)
+        self.assertEqual(type(file.id), str)
         dump = document.files[0].dump
-        self.assertEqual(type(dump), unicode)
+        self.assertEqual(type(dump), str)
         self.assertEqual(
             [line for line in dump.splitlines()], [
                 '  FORM:DJVU [83] ',
@@ -504,7 +503,7 @@ class PageJobsTestCase(TestCase):
         with self.assertRaisesString(ValueError, 'row_alignment must be a positive integer'):
             page_job.render(RENDER_COLOR, (0, 0, 10, 10), (0, 0, 10, 10), PixelFormatRgb(), -1)
 
-        with self.assertRaises_regex(MemoryError, r'\AUnable to allocate [0-9]+ bytes for an image memory\Z'):
+        with self.assertRaisesRegex(MemoryError, r'\AUnable to allocate [0-9]+ bytes for an image memory\Z'):
             x = int((sys.maxsize // 2) ** 0.5)
             page_job.render(RENDER_COLOR, (0, 0, x, x), (0, 0, x, x), PixelFormatRgb(), 8)
 
@@ -676,18 +675,12 @@ class MetadataTestCase(DecodeTestCase):
             self.assertEqual(type(metadata), Metadata)
             self.assertEqual(len(metadata), len(model_metadata))
             self.assertEqual(sorted(metadata), sorted(model_metadata))
-            if not py3k:
-                self.assertEqual(sorted(metadata.iterkeys()), sorted(model_metadata.iterkeys()))
             self.assertEqual(sorted(metadata.keys()), sorted(model_metadata.keys()))
-            if not py3k:
-                self.assertEqual(sorted(metadata.itervalues()), sorted(model_metadata.itervalues()))
             self.assertEqual(sorted(metadata.values()), sorted(model_metadata.values()))
-            if not py3k:
-                self.assertEqual(sorted(metadata.iteritems()), sorted(model_metadata.iteritems()))
             self.assertEqual(sorted(metadata.items()), sorted(model_metadata.items()))
             for k in metadata:
-                self.assertEqual(type(k), unicode)
-                self.assertEqual(type(metadata[k]), unicode)
+                self.assertEqual(type(k), str)
+                self.assertEqual(type(metadata[k]), str)
             for k in None, 42, str.join('+', model_metadata):
                 with self.assertRaises(KeyError) as ecm:
                     metadata[k]
