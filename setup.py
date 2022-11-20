@@ -21,6 +21,7 @@ an open source implementation of `DjVu <http://djvu.org/>`_.
 
 import glob
 import io
+import logging
 import os
 import re
 import subprocess as ipc
@@ -35,6 +36,10 @@ try:
     import sphinx.setup_command as sphinx_setup_command
 except ImportError:
     sphinx_setup_command = None
+
+
+logger = logging.getLogger(__name__)
+del logging
 
 
 class PackageVersionError(Exception):
@@ -68,15 +73,15 @@ def run_pkgconfig(*cmdline):
         )
     except EnvironmentError as exc:
         msg = 'cannot execute pkg-config: {exc.strerror}'.format(exc=exc)
-        print(msg)
+        logger.warning(msg)
         return
     stdout, stderr = pkgconfig.communicate()
     stdout = stdout.decode('ASCII')
     stderr = stderr.decode('ASCII', 'replace')
     if pkgconfig.returncode != 0:
-        print('pkg-config failed:')
+        logger.warning('pkg-config failed:')
         for line in stderr.splitlines():
-            print('  ' + line)
+            logger.warning('  ' + line)
         return
     return stdout
 
@@ -136,7 +141,6 @@ class build_ext(_build_ext):
                 getattr(extension, attr)
                 setattr(extension, attr, flags)
         new_config = [
-            'DEF PY3K = {0}'.format(sys.version_info >= (3, 0)),  # TODO: Drop.
             'DEF PYTHON_DJVULIBRE_VERSION = b"{0}"'.format(py_version),
             'DEF HAVE_MINIEXP_IO_T = {0}'.format(djvulibre_version >= Version('3.5.26')),
         ]
@@ -150,7 +154,7 @@ class build_ext(_build_ext):
             old_config = ''
         new_config = '\n'.join(new_config)
         if new_config.strip() != old_config.strip():
-            print('creating {conf!r}'.format(conf=self.config_path))
+            logger.info('creating {conf!r}'.format(conf=self.config_path))
             with open(self.config_path, mode='w') as fd:
                 fd.write(new_config)
         _build_ext.run(self)
@@ -170,7 +174,7 @@ class build_ext(_build_ext):
             )
             yield target
             depends = [source, self.config_path] + ext.depends
-            print('cythoning {ext.name!r} extension'.format(ext=ext))
+            logger.debug('cythonizing {ext.name!r} extension'.format(ext=ext))
             def build_c(source, target):
                 ipc.run([
                     sys.executable, '-m', 'cython',
