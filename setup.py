@@ -258,6 +258,12 @@ setup_params = dict(
         if cmd is not None
     ),
     py_modules=['djvu.const'],
+    extras_require={
+        'dev': [
+            'flake8',
+            'pep8-naming',
+        ],
+    },
     **meta
 )
 
