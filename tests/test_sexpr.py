@@ -539,7 +539,7 @@ class ExpressionParserAsciiTestCase(SexprTestCase):
         self.check(fp)
 
     def test_bytesio(self):
-        fp = io.BytesIO(b(self.expr))
+        fp = io.BytesIO(self.expr.encode('UTF-8'))
         self.check(fp)
 
     def test_file_io_text(self):
@@ -637,7 +637,7 @@ class ExpressionWriterAsciiTestCase(SexprTestCase):
     def test_bytesio_7(self):
         fp = io.BytesIO()
         self.expr.print_into(fp)
-        self.assertEqual(fp.getvalue(), b(self.repr))
+        self.assertEqual(fp.getvalue(), self.repr.encode('UTF-8'))
 
     def test_bytesio_8(self):
         fp = io.BytesIO()
@@ -701,7 +701,7 @@ class ExpressionWriterAsciiTestCase(SexprTestCase):
 
 class ExpressionWriterNonAsciiTestCase(ExpressionWriterAsciiTestCase):
 
-    expr = Expression(u('żółw'))
+    expr = Expression('żółw')
     repr = r'"\305\274\303\263\305\202w"'
     urepr = r'"żółw"'
 
