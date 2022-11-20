@@ -33,41 +33,28 @@ cdef object weakref
 import weakref
 
 cdef object thread
-IF PY3K:
-    import _thread as thread
-ELSE:
-    import thread
+import _thread as thread
 
 cdef object Queue, Empty
-IF PY3K:
-    from queue import Queue, Empty
-ELSE:
-    from Queue import Queue, Empty
+from queue import Queue, Empty
 
 cdef object Condition
 from threading import Condition
 
 cdef object imap, izip
-IF PY3K:
-    imap = map
-    izip = zip
-ELSE:
-    from itertools import imap, izip
+imap = map
+izip = zip
 
 cdef object sys, devnull, format_exc
 import sys
 from os import devnull
 from traceback import format_exc
 
-IF PY3K:
-    cdef object memoryview
-    from builtins import memoryview
+cdef object memoryview
+from builtins import memoryview
 
 cdef object StringIO
-IF PY3K:
-    from io import StringIO
-ELSE:
-    from cStringIO import StringIO
+from io import StringIO
 
 cdef object Symbol, SymbolExpression, InvalidExpression
 from djvu.sexpr import Symbol, SymbolExpression, InvalidExpression
@@ -198,30 +185,21 @@ cdef extern from 'libdjvu/ddjvuapi.h':
 
 # Python files:
 
-IF PY3K:
-    from cpython cimport (
-        PyErr_SetFromErrno as posix_error,
-        PyObject_AsFileDescriptor as file_to_fd,
-    )
-    cdef int is_file(object o):
-        return not is_number(o) and file_to_fd(o) != -1
-ELSE:
-    cdef extern from 'Python.h':
-        FILE* file_to_cfile 'PyFile_AsFile'(object)
-        int is_file 'PyFile_Check'(object)
-IF WINDOWS:
-    cdef extern from 'io.h' nogil:
-        int dup(int)
-ELSE:
-    from posix.unistd cimport dup
+from cpython cimport (
+    PyErr_SetFromErrno as posix_error,
+    PyObject_AsFileDescriptor as file_to_fd,
+)
+cdef int is_file(object o):
+    return not is_number(o) and file_to_fd(o) != -1
+
+from posix.unistd cimport dup
 from libc.stdio cimport fclose
 from libc.stdio cimport fdopen
 
-IF HAVE_LANGINFO_H:
-    cdef extern from 'langinfo.h':
-        ctypedef enum nl_item:
-            CODESET
-        char *nl_langinfo(nl_item item)
+cdef extern from 'langinfo.h':
+    ctypedef enum nl_item:
+        CODESET
+    char *nl_langinfo(nl_item item)
 
 DDJVU_VERSION = ddjvu_code_get_version()
 
@@ -261,41 +239,31 @@ cdef class _FileWrapper:
         self.cfile = NULL
         if not is_file(file):
             raise TypeError('file must be a real file object')
-        IF PY3K:
-            fd = file_to_fd(file)
-            if fd == -1:
-                posix_error(OSError)
-            fd = dup(fd)
-            if fd == -1:
-                posix_error(OSError)
-            self.cfile = fdopen(fd, mode)
-            if self.cfile == NULL:
-                posix_error(OSError)
-        ELSE:
-            self.cfile = file_to_cfile(file)
+        fd = file_to_fd(file)
+        if fd == -1:
+            posix_error(OSError)
+        fd = dup(fd)
+        if fd == -1:
+            posix_error(OSError)
+        self.cfile = fdopen(fd, mode)
+        if self.cfile == NULL:
+            posix_error(OSError)
 
     cdef object close(self):
-        IF PY3K:
-            cdef int rc
-            if self.cfile == NULL:
-                return
-            rc = fclose(self.cfile)
-            self.cfile = NULL
-            if rc != 0:
-                posix_error(OSError)
-        ELSE:
-            if self._file is not None:
-                self._file.flush()
-                self._file = None
-                self.cfile = NULL
+        cdef int rc
+        if self.cfile == NULL:
+            return
+        rc = fclose(self.cfile)
+        self.cfile = NULL
+        if rc != 0:
+            posix_error(OSError)
 
-    IF PY3K:
-        def __dealloc__(self):
-            cdef int rc
-            if self.cfile == NULL:
-                return
-            rc = fclose(self.cfile)
-            # XXX It's too late to handle errors.
+    def __dealloc__(self):
+        cdef int rc
+        if self.cfile == NULL:
+            return
+        rc = fclose(self.cfile)
+        # XXX It's too late to handle errors.
 
 class NotAvailable(Exception):
     '''
@@ -1563,12 +1531,10 @@ cdef class Context:
             acquire_lock(loft_lock, WAIT_LOCK)
         try:
             if typecheck(uri, FileUri):
-                IF PY3K:
-                    uri = encode_utf8(uri)
+                uri = encode_utf8(uri)
                 ddjvu_document = ddjvu_document_create_by_filename(self.ddjvu_context, uri, cache)
             else:
-                IF PY3K:
-                    uri = encode_utf8(uri)
+                uri = encode_utf8(uri)
                 ddjvu_document = ddjvu_document_create(self.ddjvu_context, uri, cache)
             if ddjvu_document == NULL:
                 raise JobFailed
@@ -1945,15 +1911,17 @@ cdef object allocate_image_memory(long width, long height, object buffer, void *
         memory[0] = <char*> result
     else:
         result = buffer
-        IF PY3K:
-            memview = memoryview(buffer).cast('c')
-            if len(memview) < c_requested_size:
-                raise ValueError('Image buffer is too small ({0} > {1})'.format(c_requested_size, len(memview)))
-            memory[0] = &memview[0]
-        ELSE:
-            buffer_to_writable_memory(buffer, memory, &c_memory_size)
-            if c_memory_size < c_requested_size:
-                raise ValueError('Image buffer is too small ({0} > {1})'.format(c_requested_size, c_memory_size))
+        memview = memoryview(buffer).cast('c')
+        # Avoid:
+        #   warning: comparison of integer expressions of different signedness: ‘size_t’ {aka ‘long unsigned int’} and ‘Py_ssize_t’ {aka ‘long int’}
+        memview_size = len(memview)
+        try:
+            c_memview_size = memview_size
+        except OverflowError:
+            raise MemoryError('Unable to convert memory view size {0}.'.format(memview_size))
+        if c_memview_size < c_requested_size:
+            raise ValueError('Image buffer is too small ({0} > {1})'.format(c_requested_size, c_memview_size))
+        memory[0] = &memview[0]
     return (result, memview)
 
 
@@ -2345,10 +2313,7 @@ cdef class AffineTransform:
 
     def __call__(self, value):
         cdef ddjvu_rect_t rect
-        IF PY3K:
-            next = iter(value).__next__
-        ELSE:
-            next = iter(value).next
+        next = iter(value).__next__
         try:
             rect.x = next()
             rect.y = next()
@@ -2389,10 +2354,7 @@ cdef class AffineTransform:
         Apply the inverse coordinate transform to a point or a rectangle.
         '''
         cdef ddjvu_rect_t rect
-        IF PY3K:
-            next = iter(value).__next__
-        ELSE:
-            next = iter(value).next
+        next = iter(value).__next__
         try:
             rect.x = next()
             rect.y = next()
@@ -2490,12 +2452,7 @@ cdef class ErrorMessage(Message):
 
     cdef object _init(self):
         Message._init(self)
-        IF HAVE_LANGINFO_H:
-            locale_encoding = charp_to_string(nl_langinfo(CODESET))
-        ELSE:
-            # Presumably a Windows system.
-            import locale
-            locale_encoding = locale.getpreferredencoding()
+        locale_encoding = charp_to_string(nl_langinfo(CODESET))
         if self.ddjvu_message.m_error.message != NULL:
             # Things can go awry if user calls setlocale() between the time the
             # message was created and the time it was received. Let's hope it
@@ -2530,20 +2487,8 @@ cdef class ErrorMessage(Message):
         def __get__(self):
             return self._location
 
-    IF PY3K:
-        def __str__(self):
-            return self.message
-    ELSE:
-        def __str__(self):
-            IF HAVE_LANGINFO_H:
-                locale_encoding = charp_to_string(nl_langinfo(CODESET))
-            ELSE:
-                # Presumably a Windows system.
-                import locale
-                locale_encoding = locale.getpreferredencoding()
-            return self.message.encode(locale_encoding, 'replace')
-        def __unicode__(self):
-            return self.message
+    def __str__(self):
+        return self.message
 
     def __repr__(self):
         return '<{tp}: {msg!r} at {loc!r}>'.format(
@@ -3370,13 +3315,6 @@ cdef class Metadata:
         '''
         return self._keys
 
-    IF not PY3K:
-        def iterkeys(self):
-            '''
-            M.iterkeys() -> an iterator over the keys of M
-            '''
-            return iter(self)
-
     def __iter__(self):
         return iter(self._keys)
 
@@ -3386,40 +3324,16 @@ cdef class Metadata:
         '''
         return map(self.__getitem__, self._keys)
 
-    IF not PY3K:
-        def itervalues(self):
-            '''
-            M.itervalues() -> an iterator over values of M
-            '''
-            return imap(self.__getitem__, self._keys)
-
     def items(self):
         '''
         M.items() -> list of M's (key, value) pairs, as 2-tuples
         '''
         return zip(self._keys, imap(self.__getitem__, self._keys))
 
-    IF not PY3K:
-        def iteritems(self):
-            '''
-            M.iteritems() -> an iterator over the (key, value) items of M
-            '''
-            return izip(self._keys, imap(self.__getitem__, self._keys))
-
-    IF not PY3K:
-        def has_key(self, k):
-            '''
-            M.has_key(k) -> True if D has a key k, else False
-            '''
-            return k in self
-
     def __contains__(self, k):
         return k in self._keys
 
 __author__ = 'Jakub Wilk <jwilk@jwilk.net>'
-IF PY3K:
-    __version__ = decode_utf8(PYTHON_DJVULIBRE_VERSION)
-ELSE:
-    __version__ = str(PYTHON_DJVULIBRE_VERSION)
+__version__ = decode_utf8(PYTHON_DJVULIBRE_VERSION)
 
 # vim:ts=4 sts=4 sw=4 et ft=pyrex

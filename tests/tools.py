@@ -15,58 +15,13 @@
 
 import codecs
 import contextlib
-import distutils.spawn
-import io
 import locale
 import os
+import shutil
 import sys
-import unittest
+from unittest import SkipTest, TestCase as _TestCase
+from io import StringIO
 
-py3k = sys.version_info >= (3, 0)
-
-SkipTest = unittest.SkipTest
-
-def get_changelog_version():
-    here = os.path.dirname(__file__)
-    path = os.path.join(here, '../doc/changelog')
-    with io.open(path, encoding='UTF-8') as file:
-        line = file.readline()
-    return line.split()[1].strip('()')
-
-tc = unittest.TestCase('__hash__')
-
-assert_true = tc.assertTrue
-
-assert_false = tc.assertFalse
-
-assert_equal = tc.assertEqual
-
-assert_not_equal = tc.assertNotEqual
-
-assert_in = tc.assertIn
-
-assert_is = tc.assertIs
-
-assert_is_instance = tc.assertIsInstance
-
-assert_less = tc.assertLess
-
-assert_list_equal = tc.assertListEqual
-
-assert_multi_line_equal = tc.assertMultiLineEqual
-assert_multi_line_equal.__self__.maxDiff = None
-
-assert_not_in = tc.assertNotIn
-
-assert_raises = tc.assertRaises
-
-assert_raises_regex = tc.assertRaisesRegex if py3k else tc.assertRaisesRegexp
-
-@contextlib.contextmanager
-def assert_raises_str(exc_type, s):
-    with assert_raises(exc_type) as ecm:
-        yield
-    assert_equal(str(ecm.exception), s)
 
 try:
     locale.LC_MESSAGES
@@ -78,22 +33,30 @@ locale_encoding = locale.getpreferredencoding()
 if codecs.lookup(locale_encoding) == codecs.lookup('US-ASCII'):
     locale_encoding = 'UTF-8'
 
-if py3k:
-    u = str
-else:
-    def u(s):
-        return s.decode('UTF-8')
 
-if py3k:
-    def b(s):
-        return s.encode('UTF-8')
-else:
-    b = bytes
+def get_changelog_version():
+    here = os.path.dirname(__file__)
+    path = os.path.join(here, '../doc/changelog')
+    with open(path, encoding='UTF-8') as fd:
+        line = fd.readline()
+    return line.split()[1].strip('()')
 
-long = type(1 << 999)
 
-if py3k:
-    def cmp(x, y):
+class TestCase(_TestCase):
+    SkipTest = SkipTest
+    maxDiff = None
+
+    @contextlib.contextmanager
+    def assertRaisesString(self, exception_type, expected_string):
+        with self.assertRaises(exception_type) as ecm:
+            yield
+        self.assertEqual(str(ecm.exception), expected_string)
+    
+    def assertRepr(self, obj, expected):
+        self.assertEqual(repr(obj), expected)
+    
+    @classmethod
+    def compare(cls, x, y):
         if x == y:
             return 0
         if x < y:
@@ -101,16 +64,8 @@ if py3k:
         if x > y:
             return 1
         assert False
-else:
-    cmp = cmp
 
-if py3k:
-    from io import StringIO
-else:
-    from io import BytesIO as StringIO
-
-unicode = type(u(''))
-
+    
 @contextlib.contextmanager
 def interim(obj, **override):
     copy = dict((key, getattr(obj, key)) for key in override)
@@ -136,9 +91,6 @@ def interim_locale(**kwargs):
     finally:
         locale.setlocale(locale.LC_ALL, old_locale)
 
-def assert_repr(self, expected):
-    return assert_equal(repr(self), expected)
-
 def skip_unless_c_messages():
     if locale.setlocale(locale.LC_MESSAGES) not in ('C', 'POSIX'):
         raise SkipTest('you need to run this test with LC_MESSAGES=C')
@@ -160,29 +112,16 @@ def skip_unless_translation_exists(lang):
         raise SkipTest('libc translation not found: ' + lang)
 
 def skip_unless_command_exists(command):
-    if distutils.spawn.find_executable(command):
+    if shutil.which(command):
         return
     raise SkipTest('command not found: ' + command)
 
-class TestCase(unittest.TestCase):
-    def __str__(self):
-        return '{cls}.{name}'.format(
-            cls=unittest.util.strclass(self.__class__),
-            name=self._testMethodName,
-        )
-
-def testcase(f):
-    class TestCase(unittest.TestCase):
-        def test(self):
-            return f()
-        def __str__(self):
-            return '{f.__module__}.{f.__name__}'.format(f=f)
-    return TestCase
 
 def wildcard_import(mod):
-    ns = {}
-    exec('from {mod} import *'.format(mod=mod), {}, ns)
-    return ns
+    namespace = {}
+    exec('from {mod} import *'.format(mod=mod), {}, namespace)
+    return namespace
+
 
 __all__ = [
     # Python 2/3 compat:

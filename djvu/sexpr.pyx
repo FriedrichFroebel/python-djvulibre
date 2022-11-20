@@ -90,10 +90,7 @@ cdef object format_exc
 from traceback import format_exc
 
 cdef object StringIO
-IF PY3K:
-    from io import StringIO
-ELSE:
-    from cStringIO import StringIO
+from io import StringIO
 
 cdef object BytesIO
 from io import BytesIO
@@ -140,13 +137,7 @@ cdef class _ExpressionIO:
             self.backup_io_ungetc = io_ungetc
         self.stdin = stdin
         self.stdout = stdout
-        IF PY3K:
-            self.stdout_binary = not hasattr(stdout, 'encoding')
-        ELSE:
-            # In Python 2, sys.stdout has the encoding attribute,
-            # even though it accepts byte strings.
-            # Let's only make a special-case for codecs.
-            self.stdout_binary = not isinstance(stdout, codecs.StreamReaderWriter)
+        self.stdout_binary = not hasattr(stdout, 'encoding')
         self.buffer = []
         self.exc = None
         IF HAVE_MINIEXP_IO_T:
@@ -243,10 +234,7 @@ IF HAVE_MINIEXP_IO_T:
                 return EOF
             if is_unicode(s):
                 s = encode_utf8(s)
-            IF PY3K:
-                xio.buffer += reversed(s)
-            ELSE:
-                xio.buffer += map(ord, reversed(s))
+            xio.buffer += reversed(s)
             return xio.buffer.pop()
         except:
             xio.exc = sys.exc_info()
@@ -281,10 +269,7 @@ ELSE:
                 return EOF
             if is_unicode(s):
                 s = encode_utf8(s)
-            IF PY3K:
-                _myio.buffer += reversed(s)
-            ELSE:
-                _myio.buffer += map(ord, reversed(s))
+            _myio.buffer += reversed(s)
             return _myio.buffer.pop()
         except:
             _myio.exc = sys.exc_info()
@@ -365,12 +350,9 @@ cdef class BaseSymbol:
         self._bytes = cbytes
 
     def __repr__(self):
-        IF PY3K:
-            try:
-                string = self._bytes.decode('UTF-8')
-            except UnicodeDecodeError:
-                string = self._bytes
-        ELSE:
+        try:
+            string = self._bytes.decode('UTF-8')
+        except UnicodeDecodeError:
             string = self._bytes
         return '{tp}({s!r})'.format(tp=get_type_name(_Symbol_), s=string)
 
@@ -389,16 +371,8 @@ cdef class BaseSymbol:
         def __get__(self):
             return self._bytes
 
-    IF not PY3K:
-        def __str__(self):
-            return self._bytes
-
-    IF PY3K:
-        def __str__(self):
-            return self._bytes.decode('UTF-8')
-    ELSE:
-        def __unicode__(self):
-            return self._bytes.decode('UTF-8')
+    def __str__(self):
+        return self._bytes.decode('UTF-8')
 
     def __reduce__(self):
         return (Symbol, (self._bytes,))
@@ -421,8 +395,7 @@ class Symbol(BaseSymbol):
         if self is None:
             if not is_bytes(name):
                 name = str(name)
-                IF PY3K:
-                    name = encode_utf8(name)
+                name = encode_utf8(name)
             self = BaseSymbol.__new__(cls, name)
             if cls is _Symbol_:
                 symbol_dict[name] = self
@@ -490,10 +463,7 @@ class Expression(BaseExpression):
         elif is_unicode(value):
             return StringExpression(encode_utf8(value))
         elif is_bytes(value):
-            if PY3K:
-                return StringExpression(bytes(value))
-            else:
-                return StringExpression(str(value))
+            return StringExpression(bytes(value))
         else:
             return ListExpression(iter(value))
 
@@ -554,10 +524,6 @@ cdef class BaseExpression:
 
     def __str__(self):
         return self.as_string()
-
-    IF not PY3K:
-        def __unicode__(self):
-            return self.as_string().decode('UTF-8')
 
     property value:
         '''
@@ -626,12 +592,8 @@ class IntExpression(_Expression_):
             raise TypeError('value must be an integer')
         return self
 
-    IF PY3K:
-        def __bool__(self):
-            return bool(self.value)
-    ELSE:
-        def __nonzero__(self):
-            return bool(self.value)
+    def __bool__(self):
+        return bool(self.value)
 
     def __int__(self):
         return self.value
@@ -713,20 +675,16 @@ class StringExpression(_Expression_):
     def _get_lvalue(BaseExpression self not None):
         cdef const char *bytes
         bytes = cexpr_to_str(self.wexpr.cexpr())
-        IF PY3K:
-            return decode_utf8(bytes)
-        ELSE:
-            return bytes
+        return decode_utf8(bytes)
 
-    IF PY3K:
-        def __repr__(BaseExpression self not None):
-            cdef const char *bytes
-            bytes = cexpr_to_str(self.wexpr.cexpr())
-            try:
-                string = decode_utf8(bytes)
-            except UnicodeDecodeError:
-                string = bytes
-            return '{tp}({s!r})'.format(tp=get_type_name(_Expression_), s=string)
+    def __repr__(BaseExpression self not None):
+        cdef const char *bytes
+        bytes = cexpr_to_str(self.wexpr.cexpr())
+        try:
+            string = decode_utf8(bytes)
+        except UnicodeDecodeError:
+            string = bytes
+        return '{tp}({s!r})'.format(tp=get_type_name(_Expression_), s=string)
 
     def __richcmp__(self, other, int op):
         return BaseExpression_richcmp(self, other, op)
@@ -807,12 +765,8 @@ class ListExpression(_Expression_):
             self.wexpr = _build_list_cexpr(items)
         return self
 
-    IF PY3K:
-        def __bool__(BaseExpression self not None):
-            return self.wexpr.cexpr() != cexpr_nil
-    ELSE:
-        def __nonzero__(BaseExpression self not None):
-            return self.wexpr.cexpr() != cexpr_nil
+    def __bool__(BaseExpression self not None):
+        return self.wexpr.cexpr() != cexpr_nil
 
     def __len__(BaseExpression self not None):
         cdef cexpr_t cexpr
@@ -1083,9 +1037,6 @@ cdef class _ListExpressionIterator:
 
 __all__ = ('Symbol', 'Expression', 'IntExpression', 'SymbolExpression', 'StringExpression', 'ListExpression', 'InvalidExpression', 'ExpressionSyntaxError')
 __author__ = 'Jakub Wilk <jwilk@jwilk.net>'
-IF PY3K:
-    __version__ = decode_utf8(PYTHON_DJVULIBRE_VERSION)
-ELSE:
-    __version__ = str(PYTHON_DJVULIBRE_VERSION)
+__version__ = decode_utf8(PYTHON_DJVULIBRE_VERSION)
 
 # vim:ts=4 sts=4 sw=4 et ft=pyrex

@@ -37,11 +37,7 @@ from cpython cimport (
     PyFloat_Check as is_float,
 )
 
-IF PY3K:
-    from cpython cimport PyNumber_Long as int
-ELSE:
-    from cpython cimport PyNumber_Int as int
-    from cpython cimport PyNumber_Long as long
+from cpython cimport PyNumber_Long as int
 
 # Python strings:
 
@@ -57,11 +53,8 @@ from cpython cimport (
     PyBytes_AsStringAndSize as bytes_to_charp,
     PyBytes_FromStringAndSize as charp_to_bytes,
 )
-IF PY3K:
-    cdef extern from 'Python.h':
-        object charp_to_string 'PyUnicode_FromString'(char *v)
-ELSE:
-    from cpython cimport PyString_FromString as charp_to_string
+cdef extern from 'Python.h':
+    object charp_to_string 'PyUnicode_FromString'(char *v)
 
 cdef object decode_utf8(const char *s):
     return decode_utf8_ex(s, strlen(s), NULL)
@@ -118,12 +111,8 @@ from cpython cimport PyObject_TypeCheck as _typecheck
 cdef object type(object o):
     return <object>((<PyObject*>o).ob_type)
 
-IF PY3K:
-    cdef object get_type_name(object type):
-        return decode_utf8((<PyTypeObject*>type).tp_name)
-ELSE:
-    cdef const char* get_type_name(object type):
-        return (<PyTypeObject*>type).tp_name
+cdef object get_type_name(object type):
+    return decode_utf8((<PyTypeObject*>type).tp_name)
 
 cdef int typecheck(object o, object type):
     return _typecheck(o, <PyTypeObject*> type)

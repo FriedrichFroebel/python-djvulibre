@@ -15,13 +15,12 @@ Prerequisites
 The following software is required to build python-djvulibre:
 
 * DjVuLibre (≥ 3.5.21)
-* Python_ (2.6, 2.7 or ≥ 3.3)
-* Cython_ (≥ 0.19.1, or ≥ 0.20 for Python 3)
+* Python_ (≥ 3.6)
+* Cython_ (≥ 0.20)
 * pkg-config_ (required on POSIX systems)
 
 Additionally, the following software is needed to run the tests:
 
-* subprocess32_ (only for Python 2.X)
 * DjVuLibre_ command-line tools
 * Ghostscript_
 
@@ -31,13 +30,30 @@ Additionally, the following software is needed to run the tests:
    https://cython.org/
 .. _pkg-config:
    https://wiki.freedesktop.org/www/Software/pkg-config/
-.. _subprocess32:
-   https://pypi.org/project/subprocess32/
 .. _Ghostscript:
    https://www.ghostscript.com/
 
+About this fork
+===============
+
+This repository is a Python3-only version of the original repository.
+
+Due to the upstream repository having been archived (`Issue #23`_), this fork will now be maintained on its own. Please note that I do not have any plans on implementing completely new features for now. Nevertheless, I am going to try to keep this fork working for at least the parts which I actually use on a regular basis (as part of *ocrodjvu*).
+
+Differences from upstream
+-------------------------
+
+* Package requires Python ≥ 3.6.
+* Conform to PEP8 coding style.
+* Refactor build to not use the deprecated *distutils* module any more.
+* Drop support for building the package on Windows. I do not use it there and there have not been automated tests for it. If someone wants to get this back to work and help maintaining it, feel free to open an issue.
+
+.. _Issue #23:
+   https://github.com/jwilk-archive/python-djvulibre/issues/23
+
 Acknowledgment
 ==============
+
 python-djvulibre development was supported by the Polish Ministry of Science
 and Higher Education's grant no. N N519 384036 (2009–2012,
 https://bitbucket.org/jsbien/ndt).
