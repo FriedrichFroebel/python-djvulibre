@@ -97,6 +97,24 @@ jobs:
         cd /
         pip uninstall -y python-djvulibre
         set +e; python -c 'import djvu'; [ $? -eq 1 ]
+    - name: build bdist_wheel
+      run:
+        python setup.py bdist_wheel
+    - name: check bdist file
+      run:
+        tar -tvf build/*.whl
+    - name: install via bdist_wheel
+      run:
+        python -m pip install build/*.whl
+    - name: check import
+      run: |
+        cd /
+        python -c 'import djvu.sexpr, djvu.decode'
+    - name: uninstall
+      run: |
+        cd /
+        pip uninstall -y python-djvulibre
+        set +e; python -c 'import djvu'; [ $? -eq 1 ]
     - name: install via setup.py
       run:
         python setup.py install
