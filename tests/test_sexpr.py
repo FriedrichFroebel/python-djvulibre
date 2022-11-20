@@ -130,7 +130,6 @@ class SymbolsTestCase(SexprTestCase):
         self.assertEqual(symbol, Symbol(name))
         self.assertIs(symbol, Symbol(name))
         self.assertEqual(str(symbol), sname)
-        self.assertEqual(symbol, uname)
         self.assertNotEqual(symbol, bname)
         self.assertNotEqual(symbol, uname)
         self.assertEqual(hash(symbol), hash(bname))
@@ -173,9 +172,6 @@ class SymbolExpressionsTestCase(SexprTestCase):
         # __str__():
         self.assertEqual(str(x), sname)
         self.assertRepr(x, repr(Expression.from_string(sname)))
-        # __unicode__():
-        self.assertEqual(x, uname)
-        self.assertRepr(x, repr(Expression.from_string(uname)))
         # __eq__(), __ne__():
         self.assertEqual(x, Expression(sym))
         self.assertNotEqual(x, Expression(name))
