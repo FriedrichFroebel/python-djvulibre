@@ -36,9 +36,9 @@ jobs:
       with:
         path: ~/.ccache
         key:
-          ccache-${{ DJVULIBRE_VERSION }}-py${{ matrix.python }}
+          ccache-${{ env.DJVULIBRE_VERSION }}-py${{ matrix.python }}
         restore-keys:
-          ccache-${{ DJVULIBRE_VERSION }}-py${{ matrix.python }}
+          ccache-${{ env.DJVULIBRE_VERSION }}-py${{ matrix.python }}
     - name: install DjVuLibre
       run: |
         wget https://downloads.sourceforge.net/project/djvu/DjVuLibre/${DJVULIBRE_VERSION}/djvulibre-${DJVULIBRE_VERSION}.tar.gz
