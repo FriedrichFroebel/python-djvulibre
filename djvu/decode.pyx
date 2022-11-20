@@ -1901,6 +1901,7 @@ cdef object allocate_image_memory(long width, long height, object buffer, void *
     cdef char[::1] memview = None
     cdef Py_ssize_t c_requested_size
     cdef Py_ssize_t c_memory_size
+    cdef Py_ssize_t c_memview_size
     py_requested_size = int(width) * int(height)
     try:
         c_requested_size = py_requested_size
@@ -1914,7 +1915,6 @@ cdef object allocate_image_memory(long width, long height, object buffer, void *
         memview = memoryview(buffer).cast('c')
         # Avoid:
         #   warning: comparison of integer expressions of different signedness: ‘size_t’ {aka ‘long unsigned int’} and ‘Py_ssize_t’ {aka ‘long int’}
-        cdef Py_ssize_t c_memview_size
         memview_size = len(memview)
         try:
             c_memview_size = memview_size
