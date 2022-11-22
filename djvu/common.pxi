@@ -15,13 +15,13 @@ include 'config.pxi'
 
 # C library:
 
-from libc.stdlib cimport free
-from libc.string cimport strlen
+from libc.stdlib cimport free  # noqa: F401
+from libc.string cimport strlen  # noqa: E402
 
 # Python memory handling:
 
-from cpython.mem cimport PyMem_Malloc as py_malloc
-from cpython.mem cimport PyMem_Free as py_free
+from cpython.mem cimport PyMem_Malloc as py_malloc  # noqa: F401
+from cpython.mem cimport PyMem_Free as py_free  # noqa: F401
 
 # Python numbers:
 
@@ -29,29 +29,30 @@ from cpython cimport (
     PyInt_Check as is_short_int,
     PyLong_Check as is_long_int,
 )
+
 cdef int is_int(object o):
     return is_short_int(o) or is_long_int(o)
 
 from cpython cimport (
-    PyNumber_Check as is_number,
-    PyFloat_Check as is_float,
+    PyNumber_Check as is_number,  # noqa: F401
+    PyFloat_Check as is_float,  # noqa: F401
 )
 
-from cpython cimport PyNumber_Long as int
+from cpython cimport PyNumber_Long as int  # noqa: F401
 
 # Python strings:
 
 from cpython cimport (
-    PyUnicode_Check as is_unicode,
-    PyString_Check as is_string,
-    PyBytes_Check as is_bytes,
+    PyUnicode_Check as is_unicode,  # noqa: F401
+    PyString_Check as is_string,  # noqa: F401
+    PyBytes_Check as is_bytes,  # noqa: F401
 )
 
 from cpython cimport (
-    PyUnicode_AsUTF8String as encode_utf8,
+    PyUnicode_AsUTF8String as encode_utf8,  # noqa: F401
     PyUnicode_DecodeUTF8 as decode_utf8_ex,
-    PyBytes_AsStringAndSize as bytes_to_charp,
-    PyBytes_FromStringAndSize as charp_to_bytes,
+    PyBytes_AsStringAndSize as bytes_to_charp,  # noqa: F401
+    PyBytes_FromStringAndSize as charp_to_bytes,  # noqa: F401
 )
 cdef extern from 'Python.h':
     object charp_to_string 'PyUnicode_FromString'(char *v)
@@ -64,23 +65,23 @@ cdef extern from 'Python.h':
 
 # Python booleans:
 
-from cpython cimport PyBool_FromLong as bool
+from cpython cimport PyBool_FromLong as bool  # noqa: F401
 
 # Python pointer->integer conversion:
 
-from cpython cimport PyLong_FromVoidPtr as voidp_to_int
+from cpython cimport PyLong_FromVoidPtr as voidp_to_int  # noqa: F401
 
 # Python files:
 
-from libc.stdio cimport FILE
+from libc.stdio cimport FILE  # noqa: F401
 
 # Python lists:
 
-from cpython cimport PyList_Append as list_append
+from cpython cimport PyList_Append as list_append  # noqa: F401
 
 # Python rich comparison:
 
-from cpython cimport PyObject_RichCompare as richcmp
+from cpython cimport PyObject_RichCompare as richcmp  # noqa: F401
 
 # Python slices:
 
@@ -90,13 +91,13 @@ cdef extern from 'Python.h':
 # Python threads:
 
 from cpython cimport (
-    PyThread_type_lock as Lock,
-    PyThread_allocate_lock as allocate_lock,
-    PyThread_free_lock as free_lock,
-    PyThread_acquire_lock as acquire_lock,
-    PyThread_release_lock as release_lock,
-    WAIT_LOCK,
-    NOWAIT_LOCK,
+    PyThread_type_lock as Lock,  # noqa: F401
+    PyThread_allocate_lock as allocate_lock,  # noqa: F401
+    PyThread_free_lock as free_lock,  # noqa: F401
+    PyThread_acquire_lock as acquire_lock,  # noqa: F401
+    PyThread_release_lock as release_lock,  # noqa: F401
+    WAIT_LOCK,  # noqa: F401
+    NOWAIT_LOCK,  # noqa: F401
 )
 
 # Python type checks:
@@ -120,9 +121,9 @@ cdef int typecheck(object o, object type):
 # Python exceptions:
 
 cdef void raise_instantiation_error(object cls) except *:
-    raise TypeError('cannot create \'{tp}\' instances'.format(tp=get_type_name(cls)))
+    raise TypeError(f"cannot create '{get_type_name(cls)}' instances")
 
-# Cython before 0.25 didn't support cdef classes deriving from Exception out of
+# Cython before 0.25 did not support cdef classes deriving from Exception out of
 # the box: https://github.com/cython/cython/issues/1416
 cdef extern from 'pyerrors.h':
     ctypedef class __builtin__.Exception [object PyBaseExceptionObject]:

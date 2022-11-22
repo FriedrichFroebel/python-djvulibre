@@ -14,13 +14,14 @@
 #cython: autotestdict=False
 #cython: language_level=2
 
-'''
-DjVuLibre bindings: module for handling Lisp S-expressions
-'''
+"""
+DjVuLibre bindings: module for handling Lisp S-expressions.
+"""
 
 cimport cython
 
 include 'common.pxi'
+
 
 cdef extern from 'libdjvu/miniexp.h':
     int cexpr_is_int 'miniexp_numberp'(cexpr_t sexp) nogil
@@ -80,6 +81,7 @@ cdef extern from 'libdjvu/miniexp.h':
         cexpr_t cexpr_print 'miniexp_prin'(cexpr_t cexpr)
         cexpr_t cexpr_printw 'miniexp_pprin'(cexpr_t cexpr, int width)
 
+
 cdef extern from 'stdio.h':
     int EOF
 
@@ -107,6 +109,7 @@ import codecs
 IF not HAVE_MINIEXP_IO_T:
     cdef Lock _myio_lock
     _myio_lock = allocate_lock()
+
 
 cdef class _ExpressionIO:
     IF HAVE_MINIEXP_IO_T:
@@ -218,7 +221,7 @@ IF HAVE_MINIEXP_IO_T:
                 xio.stdout.write(s)
             else:
                 xio.stdout.write(decode_utf8(s))
-        except:
+        except Exception:
             xio.exc = sys.exc_info()
             return EOF
 
@@ -236,7 +239,7 @@ IF HAVE_MINIEXP_IO_T:
                 s = encode_utf8(s)
             xio.buffer += reversed(s)
             return xio.buffer.pop()
-        except:
+        except Exception:
             xio.exc = sys.exc_info()
             return EOF
 
@@ -255,7 +258,7 @@ ELSE:
                 _myio.stdout.write(s)
             else:
                 _myio.stdout.write(decode_utf8(s))
-        except:
+        except Exception:
             _myio.exc = sys.exc_info()
             return EOF
 
@@ -271,15 +274,17 @@ ELSE:
                 s = encode_utf8(s)
             _myio.buffer += reversed(s)
             return _myio.buffer.pop()
-        except:
+        except Exception:
             _myio.exc = sys.exc_info()
             return EOF
 
     cdef int _myio_ungetc(int c):
         list_append(_myio.buffer, c)
 
+
 cdef object the_sentinel
 the_sentinel = object()
+
 
 cdef class _WrappedCExpr:
 
@@ -321,11 +326,13 @@ cdef class _WrappedCExpr:
     def __dealloc__(self):
         cvar_free(self.cvar)
 
+
 cdef _WrappedCExpr wexpr(cexpr_t cexpr):
     cdef _WrappedCExpr wexpr
     wexpr = _WrappedCExpr(sentinel = the_sentinel)
     cvar_ptr(wexpr.cvar)[0] = cexpr
     return wexpr
+
 
 cdef class _MissingCExpr(_WrappedCExpr):
 
@@ -334,6 +341,7 @@ cdef class _MissingCExpr(_WrappedCExpr):
 
     cdef object as_string(self, object width, bint escape_unicode):
         raise NotImplementedError
+
 
 cdef _MissingCExpr wexpr_missing():
     return _MissingCExpr(the_sentinel)
@@ -354,7 +362,7 @@ cdef class BaseSymbol:
             string = self._bytes.decode('UTF-8')
         except UnicodeDecodeError:
             string = self._bytes
-        return '{tp}({s!r})'.format(tp=get_type_name(_Symbol_), s=string)
+        return f'{get_type_name(_Symbol_)}({string!r})'
 
     def __richcmp__(self, object other, int op):
         cdef BaseSymbol _self, _other
@@ -377,13 +385,14 @@ cdef class BaseSymbol:
     def __reduce__(self):
         return (Symbol, (self._bytes,))
 
+
 class Symbol(BaseSymbol):
 
     @staticmethod
     def __new__(cls, name):
-        '''
+        """
         Symbol(name) -> a symbol
-        '''
+        """
         self = None
         if is_unicode(name):
             name = encode_utf8(name)
@@ -401,15 +410,17 @@ class Symbol(BaseSymbol):
                 symbol_dict[name] = self
         return self
 
+
 cdef object _Symbol_
 _Symbol_ = Symbol
 
+
 def _expression_from_string(s):
-    '''
+    """
     Expression.from_string(s) -> an expression
 
     Read an expression from a string.
-    '''
+    """
     if is_unicode(s):
         s = encode_utf8(s)
     stdin = BytesIO(s)
@@ -418,9 +429,9 @@ def _expression_from_string(s):
     finally:
         stdin.close()
 
-class Expression(BaseExpression):
 
-    '''
+class Expression(BaseExpression):
+    """
     Notes about the textual representation of S-expressions
     -------------------------------------------------------
 
@@ -431,7 +442,7 @@ class Expression(BaseExpression):
     * the vertical bar '|'.
 
     Symbols are represented by their name. Vertical bars | can be used to
-    delimit names that contain blanks, special characters, non printable
+    delimit names that contain blanks, special characters, non-printable
     characters, non-ASCII characters, or can be confused as a number.
 
     Numbers follow the syntax specified by the C function strtol() with
@@ -443,17 +454,17 @@ class Expression(BaseExpression):
     List are represented by an open parenthesis '(' followed by the space
     separated list elements, followed by a closing parenthesis ')'.
 
-    When the cdr of the last pair is non zero, the closed parenthesis is
+    When the cdr of the last pair is nonzero, the closed parenthesis is
     preceded by a space, a dot '.', a space, and the textual representation
     of the cdr. (This is only partially supported by Python bindings.)
 
-    '''
+    """
 
     @staticmethod
     def __new__(cls, value):
-        '''
+        """
         Expression(value) -> an expression
-        '''
+        """
         if typecheck(value, _Expression_) and (not typecheck(value, ListExpression) or not value):
             return value
         if is_int(value):
@@ -469,11 +480,11 @@ class Expression(BaseExpression):
 
     @staticmethod
     def from_stream(stdin):
-        '''
+        """
         Expression.from_stream(stream) -> an expression
 
         Read an expression from a stream.
-        '''
+        """
         cdef _ExpressionIO xio
         try:
             xio = _ExpressionIO(stdin=stdin)
@@ -486,8 +497,10 @@ class Expression(BaseExpression):
 
     from_string = staticmethod(_expression_from_string)
 
+
 cdef object _Expression_
 _Expression_ = Expression
+
 
 cdef object BaseExpression_richcmp(object left, object right, int op):
     if not typecheck(left, BaseExpression):
@@ -496,10 +509,11 @@ cdef object BaseExpression_richcmp(object left, object right, int op):
         return NotImplemented
     return richcmp(left.value, right.value, op)
 
+
 cdef class BaseExpression:
-    '''
-    Don't use this class directly. Use the Expression class instead.
-    '''
+    """
+    Do not use this class directly. Use the Expression class instead.
+    """
 
     cdef _WrappedCExpr wexpr
 
@@ -507,37 +521,37 @@ cdef class BaseExpression:
         self.wexpr = wexpr_missing()
 
     def print_into(self, stdout, width=None, escape_unicode=True):
-        '''
+        """
         expr.print_into(file, width=None, escape_unicode=True) -> None
 
         Print the expression into the file.
-        '''
+        """
         self.wexpr.print_into(stdout, width, escape_unicode)
 
     def as_string(self, width=None, escape_unicode=True):
-        '''
+        """
         expr.as_string(width=None, escape_unicode=True) -> a string
 
         Return a string representation of the expression.
-        '''
+        """
         return self.wexpr.as_string(width, escape_unicode)
 
     def __str__(self):
         return self.as_string()
 
     property value:
-        '''
+        """
         The "pythonic" value of the expression.
         Lisp lists as mapped to Python tuples.
-        '''
+        """
         def __get__(self):
             return self._get_value()
 
     property lvalue:
-        '''
+        """
         The "pythonic" value of the expression.
         Lisp lists as mapped to Python lists.
-        '''
+        """
         def __get__(self):
             return self._get_lvalue()
 
@@ -551,7 +565,7 @@ cdef class BaseExpression:
         return BaseExpression_richcmp(self, other, op)
 
     def __repr__(self):
-        return '{tp}({expr!r})'.format(tp=get_type_name(_Expression_), expr=self.lvalue)
+        return f'{get_type_name(_Expression_)}({self.lvalue!r})'
 
     def __copy__(self):
         # Most of S-expressions are immutable.
@@ -566,19 +580,19 @@ cdef class BaseExpression:
     def __reduce__(self):
         return (_expression_from_string, (self.as_string(),))
 
-class IntExpression(_Expression_):
 
-    '''
+class IntExpression(_Expression_):
+    """
     IntExpression can represent any integer in range(-2 ** 29, 2 ** 29).
 
     To create objects of this class, use the Expression class constructor.
-    '''
+    """
 
     @staticmethod
     def __new__(cls, value):
-        '''
+        """
         IntExpression(n) -> an integer expression
-        '''
+        """
         cdef BaseExpression self
         self = BaseExpression.__new__(cls)
         if typecheck(value, _WrappedCExpr):
@@ -598,9 +612,6 @@ class IntExpression(_Expression_):
     def __int__(self):
         return self.value
 
-    def __long__(self):
-        return long(self.value)
-
     def __float__(self):
         return 0.0 + self.value
 
@@ -613,16 +624,17 @@ class IntExpression(_Expression_):
     def __hash__(self):
         return hash(self.value)
 
+
 class SymbolExpression(_Expression_):
-    '''
+    """
     To create objects of this class, use the Expression class constructor.
-    '''
+    """
 
     @staticmethod
     def __new__(cls, value):
-        '''
+        """
         SymbolExpression(Symbol(s)) -> a symbol expression
-        '''
+        """
         cdef BaseExpression self
         cdef BaseSymbol symbol
         self = BaseExpression.__new__(cls)
@@ -644,22 +656,23 @@ class SymbolExpression(_Expression_):
     def __hash__(self):
         return hash(self.value)
 
+
 class StringExpression(_Expression_):
-    '''
+    """
     To create objects of this class, use the Expression class constructor.
-    '''
+    """
 
     @staticmethod
     def __new__(cls, value):
-        '''
+        """
         SymbolExpression(s) -> a string expression
-        '''
+        """
         cdef BaseExpression self
         self = BaseExpression.__new__(cls)
         if typecheck(value, _WrappedCExpr):
             self.wexpr = value
         elif is_bytes(value):
-            gc_lock(NULL)  # protect from collecting a just-created object
+            gc_lock(NULL)  # Protect from collecting a just-created object.
             try:
                 self.wexpr = wexpr(str_to_cexpr(value))
             finally:
@@ -673,18 +686,18 @@ class StringExpression(_Expression_):
         return cexpr_to_str(self.wexpr.cexpr())
 
     def _get_lvalue(BaseExpression self not None):
-        cdef const char *bytes
-        bytes = cexpr_to_str(self.wexpr.cexpr())
-        return decode_utf8(bytes)
+        cdef const char *bytes_
+        bytes_ = cexpr_to_str(self.wexpr.cexpr())
+        return decode_utf8(bytes_)
 
     def __repr__(BaseExpression self not None):
-        cdef const char *bytes
-        bytes = cexpr_to_str(self.wexpr.cexpr())
+        cdef const char *bytes_
+        bytes_ = cexpr_to_str(self.wexpr.cexpr())
         try:
-            string = decode_utf8(bytes)
+            string = decode_utf8(bytes_)
         except UnicodeDecodeError:
-            string = bytes
-        return '{tp}({s!r})'.format(tp=get_type_name(_Expression_), s=string)
+            string = bytes_
+        return f'{get_type_name(_Expression_)}({string!r})'
 
     def __richcmp__(self, other, int op):
         return BaseExpression_richcmp(self, other, op)
@@ -692,14 +705,17 @@ class StringExpression(_Expression_):
     def __hash__(self):
         return hash(self.value)
 
+
 class InvalidExpression(ValueError):
     pass
 
+
 class ExpressionSyntaxError(Exception):
-    '''
+    """
     Invalid expression syntax.
-    '''
+    """
     pass
+
 
 cdef _WrappedCExpr public_py2c(object o):
     cdef BaseExpression pyexpr
@@ -708,8 +724,10 @@ cdef _WrappedCExpr public_py2c(object o):
         raise TypeError
     return pyexpr.wexpr
 
+
 cdef object public_c2py(cexpr_t cexpr):
     return _c2py(cexpr)
+
 
 cdef BaseExpression _c2py(cexpr_t cexpr):
     if cexpr == cexpr_dummy:
@@ -727,10 +745,11 @@ cdef BaseExpression _c2py(cexpr_t cexpr):
         raise InvalidExpression
     return result
 
+
 cdef _WrappedCExpr _build_list_cexpr(object items):
     cdef cexpr_t cexpr
     cdef BaseExpression citem
-    gc_lock(NULL)  # protect from collecting a just-created object
+    gc_lock(NULL)  # Protect from collecting a just-created object.
     try:
         cexpr = cexpr_nil
         for item in items:
@@ -748,15 +767,15 @@ cdef _WrappedCExpr _build_list_cexpr(object items):
 
 
 class ListExpression(_Expression_):
-    '''
+    """
     To create objects of this class, use the Expression class constructor.
-    '''
+    """
 
     @staticmethod
     def __new__(cls, items):
-        '''
+        """
         ListExpression(iterable) -> a list expression
-        '''
+        """
         cdef BaseExpression self
         self = BaseExpression.__new__(cls)
         if typecheck(items, _WrappedCExpr):
@@ -888,7 +907,7 @@ class ListExpression(_Expression_):
         if citem is None:
             raise TypeError
         if index == 0 or cexpr == cexpr_nil:
-            gc_lock(NULL)  # protect from collecting a just-created object
+            gc_lock(NULL)  # Protect from collecting a just-created object.
             try:
                 new_cexpr = pair_to_cexpr(citem.wexpr.cexpr(), cexpr)
                 self.wexpr = wexpr(new_cexpr)
@@ -901,7 +920,7 @@ class ListExpression(_Expression_):
                 index = index - 1
                 cexpr = cexpr_tail(cexpr)
             else:
-                gc_lock(NULL)  # protect from collecting a just-created object
+                gc_lock(NULL)  # Protect from collecting a just-created object.
                 try:
                     new_cexpr = pair_to_cexpr(citem.wexpr.cexpr(), cexpr_tail(cexpr))
                     cexpr_replace_tail(cexpr, new_cexpr)
@@ -914,7 +933,7 @@ class ListExpression(_Expression_):
 
     def reverse(BaseExpression self not None):
         cdef cexpr_t cexpr, new_cexpr
-        gc_lock(NULL)  # protect from collecting a just-created object
+        gc_lock(NULL)  # Protect from collecting a just-created object.
         try:
             new_cexpr = cexpr_reverse_list(self.wexpr.cexpr())
             self.wexpr = wexpr(new_cexpr)
@@ -963,14 +982,14 @@ class ListExpression(_Expression_):
             cexpr = cexpr_tail(cexpr)
 
     def index(self, value):
-        # TODO: optimize
+        # TODO: Optimize.
         for i, v in enumerate(self):
             if v == value:
                 return i
         raise ValueError('value not in list')
 
     def count(self, value):
-        # TODO: optimize
+        # TODO: Optimize.
         cdef long counter = 0
         for v in self:
             if v == value:
@@ -1006,12 +1025,11 @@ class ListExpression(_Expression_):
     def __deepcopy__(self, memo):
         return _Expression_(self._get_value())
 
-if sys.version_info >= (3, 3):
-    import collections.abc as collections_abc
-else:
-    import collections as collections_abc
+
+import collections.abc as collections_abc
 collections_abc.MutableSequence.register(ListExpression)
 del collections_abc
+
 
 cdef class _ListExpressionIterator:
 
@@ -1035,7 +1053,17 @@ cdef class _ListExpressionIterator:
         return self
 
 
-__all__ = ('Symbol', 'Expression', 'IntExpression', 'SymbolExpression', 'StringExpression', 'ListExpression', 'InvalidExpression', 'ExpressionSyntaxError')
+__all__ = (
+    'Symbol',
+    'Expression',
+    'IntExpression',
+    'SymbolExpression',
+    'StringExpression',
+    'ListExpression',
+    'InvalidExpression',
+    'ExpressionSyntaxError'
+)
+
 __author__ = 'Jakub Wilk <jwilk@jwilk.net>'
 __version__ = decode_utf8(PYTHON_DJVULIBRE_VERSION)
 

@@ -17,11 +17,9 @@ import array
 import errno
 import os
 import re
-import shutil
 import subprocess
 import sys
 import tempfile
-import warnings
 
 from djvu.decode import (
     AffineTransform,
@@ -75,10 +73,19 @@ from djvu.sexpr import (
     Symbol,
 )
 
-from tools import TestCase, skip_unless_c_messages, skip_unless_command_exists, skip_unless_translation_exists, get_changelog_version, interim_locale, locale_encoding, wildcard_import
+from tools import (
+    interim_locale,
+    get_changelog_version,
+    locale_encoding,
+    skip_unless_c_messages,
+    skip_unless_command_exists,
+    skip_unless_translation_exists,
+    TestCase,
+    wildcard_import,
+)
 
 
-images = os.path.join(os.path.dirname(__file__), 'images', '')
+IMAGES = os.path.join(os.path.dirname(__file__), 'images', '')
 
 
 class DecodeTestCase(TestCase):
@@ -89,7 +96,7 @@ class DecodeTestCase(TestCase):
             if key.isupper():
                 env[key] = value
                 continue
-            raise TypeError('{key!r} is an invalid keyword argument for this function'.format(key=key))
+            raise TypeError(f'{key!r} is an invalid keyword argument for this function')
         kwargs = dict(
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -98,15 +105,15 @@ class DecodeTestCase(TestCase):
         if stdin is not None:
             kwargs.update(stdin=subprocess.PIPE)
         child = subprocess.Popen(list(cmd), **kwargs)
-        (stdout, stderr) = child.communicate(stdin)
+        stdout, stderr = child.communicate(stdin)
         if child.returncode != 0:
             raise subprocess.CalledProcessError(child.returncode, cmd[0])
-        return (stdout, stderr)
+        return stdout, stderr
 
     def create_djvu(self, commands='', sexpr=''):
         skip_unless_command_exists('djvused')
         if sexpr:
-            commands += '\nset-ant\n{sexpr}\n.\n'.format(sexpr=sexpr)
+            commands += f'\nset-ant\n{sexpr}\n.\n'
         file = tempfile.NamedTemporaryFile(prefix='test', suffix='djvu')
         file.seek(0)
         file.write(
@@ -115,7 +122,7 @@ class DecodeTestCase(TestCase):
             b'\x16\x01\x53\x6A\x62\x7A\x00\x00\x00\x04\xBC\x73\x1B\xD7'
         )
         file.flush()
-        (stdout, stderr) = self.run_command('djvused', '-s', file.name, stdin=commands.encode(locale_encoding))
+        stdout, stderr = self.run_command('djvused', '-s', file.name, stdin=commands.encode(locale_encoding))
         self.assertEqual(stdout, ''.encode(locale_encoding))
         self.assertEqual(stderr, ''.encode(locale_encoding))
         return file
@@ -158,11 +165,11 @@ class DocumentsTestCase(DecodeTestCase):
         with self.assertRaises(JobFailed):
             context.new_document(FileUri(path))
         message = context.get_message()
-        self.assertEqual(type(message), ErrorMessage)
-        self.assertEqual(type(message.message), str)
+        self.assertIsInstance(message, ErrorMessage)
+        self.assertIsInstance(message.message, str)
         self.assertEqual(
             message.message,
-            "[1-11711] Failed to open '{path}': {msg}.".format(path=path, msg=c_message)
+            f"[1-11711] Failed to open '{path}': {c_message}."
         )
         self.assertEqual(str(message), message.message)
 
@@ -183,31 +190,29 @@ class DocumentsTestCase(DecodeTestCase):
         except UnicodeError:
             pass
         else:
-            raise AssertionError(
-                'ja_JP error message is ASCII-only: {msg!r}'.format(msg=c_message)
-            )
+            self.fail(f'ja_JP error message is ASCII-only: {c_message!r}')
         with interim_locale(LC_ALL='ja_JP.UTF-8'):
             with self.assertRaises(JobFailed):
                 context.new_document(FileUri(path))
             message = context.get_message()
-            self.assertEqual(type(message), ErrorMessage)
-            self.assertEqual(type(message.message), str)
+            self.assertIsInstance(message, ErrorMessage)
+            self.assertIsInstance(message.message, str)
             self.assertEqual(
                 message.message,
-                "[1-11711] Failed to open '{path}': {msg}.".format(path=path, msg=c_message)
+                f"[1-11711] Failed to open '{path}': {c_message}."
             )
             self.assertEqual(
                 str(message),
-                "[1-11711] Failed to open '{path}': {msg}.".format(path=path, msg=c_message)
+                f"[1-11711] Failed to open '{path}': {c_message}."
             )
             self.assertEqual(str(message), message.message)
 
     def test_new_document(self):
         context = Context()
-        document = context.new_document(FileUri(images + 'test1.djvu'))
-        self.assertEqual(type(document), Document)
+        document = context.new_document(FileUri(IMAGES + 'test1.djvu'))
+        self.assertIsInstance(document, Document)
         message = document.get_message()
-        self.assertEqual(type(message), DocInfoMessage)
+        self.assertIsInstance(message, DocInfoMessage)
         self.assertTrue(document.decoding_done)
         self.assertFalse(document.decoding_error)
         self.assertEqual(document.decoding_status, JobOK)
@@ -218,34 +223,35 @@ class DocumentsTestCase(DecodeTestCase):
         self.assertTrue(decoding_job.is_done)
         self.assertFalse(decoding_job.is_error)
         self.assertEqual(decoding_job.status, JobOK)
-        file = document.files[0]
-        self.assertIs(type(file), File)
-        self.assertIs(file.document, document)
-        self.assertIs(file.get_info(), None)
-        self.assertEqual(file.type, 'P')
-        self.assertEqual(file.n_page, 0)
-        page = file.page
-        self.assertEqual(type(page), Page)
+        document_file = document.files[0]
+        self.assertIsInstance(document_file, File)
+        self.assertIs(document_file.document, document)
+        self.assertIs(document_file.get_info(), None)
+        self.assertEqual(document_file.type, 'P')
+        self.assertEqual(document_file.n_page, 0)
+        page = document_file.page
+        self.assertIsInstance(page, Page)
         self.assertIs(page.document, document)
         self.assertEqual(page.n, 0)
-        self.assertIs(file.size, None)
-        self.assertEqual(file.id, 'test1.djvu')
-        self.assertEqual(type(file.id), str)
-        self.assertEqual(file.name, 'test1.djvu')
-        self.assertEqual(type(file.name), str)
-        self.assertEqual(file.title, 'test1.djvu')
-        self.assertEqual(type(file.title), str)
+        self.assertIs(document_file.size, None)
+        self.assertEqual(document_file.id, 'test1.djvu')
+        self.assertIsInstance(document_file.id, str)
+        self.assertEqual(document_file.name, 'test1.djvu')
+        self.assertIsInstance(document_file.name, str)
+        self.assertEqual(document_file.title, 'test1.djvu')
+        self.assertIsInstance(document_file.title, str)
         dump = document.files[0].dump
-        self.assertEqual(type(dump), str)
+        self.assertIsInstance(dump, str)
         self.assertEqual(
-            [line for line in dump.splitlines()], [
+            [line for line in dump.splitlines()],
+            [
                 '  FORM:DJVU [83] ',
                 '    INFO [10]         DjVu 64x48, v24, 300 dpi, gamma=2.2',
                 '    Sjbz [53]         JB2 bilevel data',
             ]
         )
         page = document.pages[0]
-        self.assertEqual(type(page), Page)
+        self.assertIsInstance(page, Page)
         self.assertIs(page.document, document)
         self.assertIs(page.get_info(), None)
         self.assertEqual(page.width, 64)
@@ -254,14 +260,15 @@ class DocumentsTestCase(DecodeTestCase):
         self.assertEqual(page.dpi, 300)
         self.assertEqual(page.rotation, 0)
         self.assertEqual(page.version, 24)
-        file = page.file
-        self.assertEqual(type(file), File)
-        self.assertEqual(file.id, 'test1.djvu')
-        self.assertEqual(type(file.id), str)
+        document_file = page.file
+        self.assertIsInstance(document_file, File)
+        self.assertEqual(document_file.id, 'test1.djvu')
+        self.assertIsInstance(document_file.id, str)
         dump = document.files[0].dump
-        self.assertEqual(type(dump), str)
+        self.assertIsInstance(dump, str)
         self.assertEqual(
-            [line for line in dump.splitlines()], [
+            [line for line in dump.splitlines()],
+            [
                 '  FORM:DJVU [83] ',
                 '    INFO [10]         DjVu 64x48, v24, 300 dpi, gamma=2.2',
                 '    Sjbz [53]         JB2 bilevel data',
@@ -274,51 +281,46 @@ class DocumentsTestCase(DecodeTestCase):
         self.assertIs(document.get_message(wait=False), None)
         self.assertIs(context.get_message(wait=False), None)
         with self.assertRaisesString(IndexError, 'page number out of range'):
-            document.pages[-1]
+            _ = document.pages[-1]
         with self.assertRaisesString(IndexError, 'page number out of range'):
-            document.pages[1]
+            _ = document.pages[1]
         self.assertIs(document.get_message(wait=False), None)
         self.assertIs(context.get_message(wait=False), None)
 
     def test_save(self):
         skip_unless_command_exists('djvudump')
         context = Context()
-        original_filename = images + 'test0.djvu'
+        original_filename = IMAGES + 'test0.djvu'
         document = context.new_document(FileUri(original_filename))
         message = document.get_message()
-        self.assertEqual(type(message), DocInfoMessage)
+        self.assertIsInstance(message, DocInfoMessage)
         self.assertTrue(document.decoding_done)
         self.assertFalse(document.decoding_error)
         self.assertEqual(document.decoding_status, JobOK)
         self.assertEqual(document.type, DOCUMENT_TYPE_BUNDLED)
         self.assertEqual(len(document.pages), 2)
         self.assertEqual(len(document.files), 3)
-        (stdout0, stderr0) = self.run_command('djvudump', original_filename, LC_ALL='C')
+        stdout0, stderr0 = self.run_command('djvudump', original_filename, LC_ALL='C')
         self.assertEqual(stderr0, b'')
         stdout0 = stdout0.replace(b'\r\n', b'\n')
-        tmpdir = tempfile.mkdtemp()
-        try:
-            tmp = open(os.path.join(tmpdir, 'tmp.djvu'), 'wb')
-            job = document.save(tmp)
-            self.assertEqual(type(job), SaveJob)
-            self.assertTrue(job.is_done)
-            self.assertFalse(job.is_error)
-            tmp.close()
-            (stdout, stderr) = self.run_command('djvudump', tmp.name, LC_ALL='C')
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with open(os.path.join(tmpdir, 'tmp.djvu'), 'wb') as tmp:
+                job = document.save(tmp)
+                self.assertIsInstance(job, SaveJob)
+                self.assertTrue(job.is_done)
+                self.assertFalse(job.is_error)
+            stdout, stderr = self.run_command('djvudump', tmp.name, LC_ALL='C')
             self.assertEqual(stderr, b'')
             stdout = stdout.replace(b'\r\n', b'\n')
             self.assertEqual(stdout, stdout0)
-        finally:
-            shutil.rmtree(tmpdir)
-            tmp = None
-        tmpdir = tempfile.mkdtemp()
-        try:
-            tmp = open(os.path.join(tmpdir, 'tmp.djvu'), 'wb')
-            job = document.save(tmp, pages=(0,))
-            self.assertEqual(type(job), SaveJob)
-            self.assertTrue(job.is_done)
-            self.assertFalse(job.is_error)
-            tmp.close()
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with open(os.path.join(tmpdir, 'tmp.djvu'), 'wb') as tmp:
+                job = document.save(tmp, pages=(0,))
+                self.assertIsInstance(job, SaveJob)
+                self.assertTrue(job.is_done)
+                self.assertFalse(job.is_error)
             stdout, stderr = self.run_command('djvudump', tmp.name, LC_ALL='C')
             self.assertEqual(stderr, b'')
             stdout = stdout.replace(b'\r\n', b'\n')
@@ -328,37 +330,32 @@ class DocumentsTestCase(DecodeTestCase):
             self.assertEqual(len(stdout), 10)
             self.assertEqual(stdout[3:-1], stdout0[4:10])
             self.assertEqual(stdout[-1], b'')
-        finally:
-            shutil.rmtree(tmpdir)
-            tmp = None
-        tmpdir = tempfile.mkdtemp()
-        try:
-            tmpfname = os.path.join(tmpdir, 'index.djvu')
-            job = document.save(indirect=tmpfname)
-            self.assertEqual(type(job), SaveJob)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_filename = os.path.join(tmpdir, 'index.djvu')
+            job = document.save(indirect=tmp_filename)
+            self.assertIsInstance(job, SaveJob)
             self.assertTrue(job.is_done)
             self.assertFalse(job.is_error)
-            (stdout, stderr) = self.run_command('djvudump', tmpfname, LC_ALL='C')
+            stdout, stderr = self.run_command('djvudump', tmp_filename, LC_ALL='C')
             self.assertEqual(stderr, b'')
             stdout = stdout.replace(b'\r\n', b'\n')
             stdout = stdout.split(b'\n')
             stdout0 = (
                 [b'      shared_anno.iff -> shared_anno.iff'] +
-                ['      p{n:04}.djvu -> p{n:04}.djvu'.format(n=n).encode('UTF-8') for n in range(1, 3)]
+                [f'      p{n:04}.djvu -> p{n:04}.djvu'.encode('UTF-8') for n in range(1, 3)]
             )
             self.assertEqual(len(stdout), 7)
             self.assertEqual(stdout[2:-2], stdout0)
             self.assertEqual(stdout[-1], b'')
-        finally:
-            shutil.rmtree(tmpdir)
-        tmpdir = tempfile.mkdtemp()
-        try:
-            tmpfname = os.path.join(tmpdir, 'index.djvu')
-            job = document.save(indirect=tmpfname, pages=(0,))
-            self.assertEqual(type(job), SaveJob)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_filename = os.path.join(tmpdir, 'index.djvu')
+            job = document.save(indirect=tmp_filename, pages=(0,))
+            self.assertIsInstance(job, SaveJob)
             self.assertTrue(job.is_done)
             self.assertFalse(job.is_error)
-            (stdout, stderr) = self.run_command('djvudump', tmpfname, LC_ALL='C')
+            stdout, stderr = self.run_command('djvudump', tmp_filename, LC_ALL='C')
             stdout = stdout.replace(b'\r\n', b'\n')
             self.assertEqual(stderr, b'')
             stdout = stdout.split(b'\n')
@@ -366,15 +363,13 @@ class DocumentsTestCase(DecodeTestCase):
             self.assertEqual(stdout[2], b'      shared_anno.iff -> shared_anno.iff')
             self.assertEqual(stdout[3], b'      p0001.djvu -> p0001.djvu')
             self.assertEqual(stdout[-1], b'')
-        finally:
-            shutil.rmtree(tmpdir)
 
     def test_export_ps(self):
         skip_unless_command_exists('ps2ascii')
         context = Context()
-        document = context.new_document(FileUri(images + 'test0.djvu'))
+        document = context.new_document(FileUri(IMAGES + 'test0.djvu'))
         message = document.get_message()
-        self.assertEqual(type(message), DocInfoMessage)
+        self.assertIsInstance(message, DocInfoMessage)
         self.assertTrue(document.decoding_done)
         self.assertFalse(document.decoding_error)
         self.assertEqual(document.decoding_status, JobOK)
@@ -383,7 +378,7 @@ class DocumentsTestCase(DecodeTestCase):
         self.assertEqual(len(document.files), 3)
         with tempfile.NamedTemporaryFile() as tmp:
             job = document.export_ps(tmp.file)
-            self.assertEqual(type(job), SaveJob)
+            self.assertIsInstance(job, SaveJob)
             self.assertTrue(job.is_done)
             self.assertFalse(job.is_error)
             stdout, stderr = self.run_command('ps2ascii', tmp.name, LC_ALL='C')
@@ -392,14 +387,14 @@ class DocumentsTestCase(DecodeTestCase):
             self.assertEqual(stdout, b' ')
         with tempfile.NamedTemporaryFile() as tmp:
             job = document.export_ps(tmp.file, pages=(0,), text=True)
-            self.assertEqual(type(job), SaveJob)
+            self.assertIsInstance(job, SaveJob)
             self.assertTrue(job.is_done)
             self.assertFalse(job.is_error)
             stdout, stderr = self.run_command('ps2ascii', tmp.name, LC_ALL='C')
             self.assertEqual(stderr, b'')
             stdout = stdout.decode('ASCII')
             stdout = re.sub(r'[\x00\s]+', ' ', stdout)
-            stdout = str.join(' ', stdout.split()[:3])
+            stdout = ' '.join(stdout.split()[:3])
             expected = '1 Lorem ipsum'
             self.assertMultiLineEqual(stdout, expected)
 
@@ -420,9 +415,18 @@ class PixelFormatsTestCase(TestCase):
 
     def test_rgb_mask(self):
         pf = PixelFormatRgbMask(0xFF, 0xF00, 0x1F000, 0, 16)
-        self.assertRepr(pf, "djvu.decode.PixelFormatRgbMask(red_mask = 0x00ff, green_mask = 0x0f00, blue_mask = 0xf000, xor_value = 0x0000, bpp = 16)")
+        self.assertRepr(
+            pf,
+            "djvu.decode.PixelFormatRgbMask(red_mask = 0x00ff, green_mask = 0x0f00, blue_mask = 0xf000, xor_value = 0x0000, bpp = 16)"
+        )
         pf = PixelFormatRgbMask(0xFF000000, 0xFF0000, 0xFF00, 0xFF, 32)
-        self.assertRepr(pf, "djvu.decode.PixelFormatRgbMask(red_mask = 0xff000000, green_mask = 0x00ff0000, blue_mask = 0x0000ff00, xor_value = 0x000000ff, bpp = 32)")
+        self.assertRepr(
+            pf,
+            (
+                "djvu.decode.PixelFormatRgbMask(red_mask = 0xff000000, green_mask = 0x00ff0000, blue_mask = 0x0000ff00, "
+                "xor_value = 0x000000ff, bpp = 32)"
+            )
+        )
 
     def test_grey(self):
         pf = PixelFormatGrey()
@@ -430,18 +434,18 @@ class PixelFormatsTestCase(TestCase):
 
     def test_palette(self):
         with self.assertRaises(KeyError) as ecm:
-            pf = PixelFormatPalette({})
+            _ = PixelFormatPalette({})
         self.assertEqual(
             ecm.exception.args,
             ((0, 0, 0),)
         )
-        data = dict(((i, j, k), i + 7 * j + 37 + k) for i in range(6) for j in range(6) for k in range(6))
+        data = {(i, j, k): i + 7 * j + 37 + k for i in range(6) for j in range(6) for k in range(6)}
         pf = PixelFormatPalette(data)
-        data_repr = ('{k!r}: 0x{v:02x}'.format(k=k, v=v) for k, v in sorted(data.items()))
-        data_repr = str.join(', ', data_repr)
+        data_repr = (f'{k!r}: 0x{v:02x}' for k, v in sorted(data.items()))
+        data_repr = ', '.join(data_repr)
         self.assertEqual(
             repr(pf),
-            'djvu.decode.PixelFormatPalette({{{data}}}, bpp = 8)'.format(data=data_repr)
+            f'djvu.decode.PixelFormatPalette({{{data_repr}}}, bpp = 8)'
         )
 
     def test_packed_bits(self):
@@ -452,6 +456,7 @@ class PixelFormatsTestCase(TestCase):
         self.assertRepr(pf, "djvu.decode.PixelFormatPackedBits('>')")
         self.assertEqual(pf.bpp, 1)
 
+
 class PageJobsTestCase(TestCase):
 
     def test_bad_new(self):
@@ -460,12 +465,12 @@ class PageJobsTestCase(TestCase):
 
     def test_decode(self):
         context = Context()
-        document = context.new_document(FileUri(images + 'test1.djvu'))
+        document = context.new_document(FileUri(IMAGES + 'test1.djvu'))
         message = document.get_message()
-        self.assertEqual(type(message), DocInfoMessage)
+        self.assertIsInstance(message, DocInfoMessage)
         page_job = document.pages[0].decode()
         self.assertTrue(page_job.is_done)
-        self.assertEqual(type(page_job), PageJob)
+        self.assertIsInstance(page_job, PageJob)
         self.assertTrue(page_job.is_done)
         self.assertFalse(page_job.is_error)
         self.assertEqual(page_job.status, JobOK)
@@ -528,22 +533,26 @@ class PageJobsTestCase(TestCase):
         if sys.version_info >= (3, 3):
             buffer = bytearray(16)
             memview = memoryview(buffer).cast('I', shape=(2, 2))
-            self.assertIs(page_job.render(RENDER_COLOR, (0, 0, 10, 10), (0, 0, 2, 2), pixel_format, 1, memview), memview)
+            self.assertIs(
+                page_job.render(RENDER_COLOR, (0, 0, 10, 10), (0, 0, 2, 2), pixel_format, 1, memview),
+                memview
+            )
             s = bytes(buffer)
             self.assertEqual(s, b'\xFF\xFF\xFF\x00' * 4)
+
 
 class ThumbnailsTestCase(TestCase):
 
     def test(self):
         context = Context()
-        document = context.new_document(FileUri(images + 'test1.djvu'))
+        document = context.new_document(FileUri(IMAGES + 'test1.djvu'))
         message = document.get_message()
-        self.assertEqual(type(message), DocInfoMessage)
+        self.assertIsInstance(message, DocInfoMessage)
         thumbnail = document.pages[0].thumbnail
         self.assertEqual(thumbnail.status, JobOK)
         self.assertEqual(thumbnail.calculate(), JobOK)
         message = document.get_message()
-        self.assertEqual(type(message), ThumbnailMessage)
+        self.assertIsInstance(message, ThumbnailMessage)
         self.assertEqual(message.thumbnail.page.n, 0)
         (w, h, r), pixels = thumbnail.render((5, 5), PixelFormatGrey(), dry_run=True)
         self.assertEqual((w, h, r), (5, 3, 5))
@@ -553,14 +562,15 @@ class ThumbnailsTestCase(TestCase):
         self.assertEqual(pixels[:15], b'\xFF\xEB\xA7\xF2\xFF\xFF\xBF\x86\xBE\xFF\xFF\xE7\xD6\xE7\xFF')
         buffer = array.array('B', b'\0')
         with self.assertRaisesString(ValueError, 'Image buffer is too small (25 > 1)'):
-            (w, h, r), pixels = thumbnail.render((5, 5), PixelFormatGrey(), buffer=buffer)
+            _ = thumbnail.render((5, 5), PixelFormatGrey(), buffer=buffer)
         buffer = array.array('B', b'\0' * 25)
         (w, h, r), pixels = thumbnail.render((5, 5), PixelFormatGrey(), buffer=buffer)
         self.assertIs(pixels, buffer)
         s = buffer[:15].tobytes()
         self.assertEqual(s, b'\xFF\xEB\xA7\xF2\xFF\xFF\xBF\x86\xBE\xFF\xFF\xE7\xD6\xE7\xFF')
 
-def JobsTestCase(TestCase):
+
+class JobsTestCase(TestCase):
 
     def test_jobs(self):
         with self.assertRaisesString(TypeError, "cannot create 'djvu.decode.Job' instances"):
@@ -568,6 +578,7 @@ def JobsTestCase(TestCase):
 
         with self.assertRaisesString(TypeError, "cannot create 'djvu.decode.DocumentDecodingJob' instances"):
             DocumentDecodingJob()
+
 
 class AffineTransformsTestCase(TestCase):
 
@@ -577,7 +588,7 @@ class AffineTransformsTestCase(TestCase):
 
     def test1(self):
         af = AffineTransform((0, 0, 10, 10), (17, 42, 42, 100))
-        self.assertEqual(type(af), AffineTransform)
+        self.assertIsInstance(af, AffineTransform)
         self.assertEqual(af((0, 0)), (17, 42))
         self.assertEqual(af((0, 10)), (17, 142))
         self.assertEqual(af((10, 0)), (59, 42))
@@ -595,11 +606,13 @@ class AffineTransformsTestCase(TestCase):
         self.assertEqual(af.inverse(af((234, 567))), (234, 567))
         self.assertEqual(af.inverse(af((23, 45, 67, 78))), (23, 45, 67, 78))
 
+
 class MessagesTestCase(TestCase):
 
     def test_bad_new(self):
         with self.assertRaisesString(TypeError, "cannot create 'djvu.decode.Message' instances"):
             Message()
+
 
 class StreamsTestCase(TestCase):
 
@@ -611,27 +624,27 @@ class StreamsTestCase(TestCase):
         context = Context()
         document = context.new_document('dummy://dummy.djvu')
         message = document.get_message()
-        self.assertEqual(type(message), NewStreamMessage)
+        self.assertIsInstance(message, NewStreamMessage)
         self.assertEqual(message.name, 'dummy.djvu')
         self.assertEqual(message.uri, 'dummy://dummy.djvu')
-        self.assertEqual(type(message.stream), Stream)
+        self.assertIsInstance(message.stream, Stream)
         with self.assertRaises(NotAvailable):
-            document.outline.sexpr
+            _ = document.outline.sexpr
         with self.assertRaises(NotAvailable):
-            document.annotations.sexpr
+            _ = document.annotations.sexpr
         with self.assertRaises(NotAvailable):
-            document.pages[0].text.sexpr
+            _ = document.pages[0].text.sexpr
         with self.assertRaises(NotAvailable):
-            document.pages[0].annotations.sexpr
+            _ = document.pages[0].annotations.sexpr
         try:
-            with open(images + 'test1.djvu', 'rb') as fp:
+            with open(IMAGES + 'test1.djvu', 'rb') as fp:
                 message.stream.write(fp.read())
         finally:
             message.stream.close()
         with self.assertRaisesString(IOError, 'I/O operation on closed file'):
             message.stream.write(b'eggs')
         message = document.get_message()
-        self.assertEqual(type(message), DocInfoMessage)
+        self.assertIsInstance(message, DocInfoMessage)
         outline = document.outline
         outline.wait()
         x = outline.sexpr
@@ -656,53 +669,54 @@ class MetadataTestCase(DecodeTestCase):
             'English': 'eggs',
             'Русский': 'яйца',
         }
-        meta = ('|{k}| {v}'.format(k=k, v=v) for k, v in model_metadata.items())
-        meta = str.join('\n', meta)
-        test_script = 'set-meta\n{meta}\n.\n'.format(meta=meta)
+        meta = (f'|{k}| {v}' for k, v in model_metadata.items())
+        meta = '\n'.join(meta)
+        test_script = f'set-meta\n{meta}\n.\n'
         try:
             test_file = self.create_djvu(test_script)
         except UnicodeEncodeError:
-            raise SkipTest('you need to run this test with LC_CTYPE=C or LC_CTYPE=<lang>.UTF-8')
+            raise self.SkipTest('you need to run this test with LC_CTYPE=C or LC_CTYPE=<lang>.UTF-8')
         try:
             context = Context()
             document = context.new_document(FileUri(test_file.name))
             message = document.get_message()
-            self.assertEqual(type(message), DocInfoMessage)
+            self.assertIsInstance(message, DocInfoMessage)
             annotations = document.annotations
-            self.assertEqual(type(annotations), DocumentAnnotations)
+            self.assertIsInstance(annotations, DocumentAnnotations)
             annotations.wait()
             metadata = annotations.metadata
-            self.assertEqual(type(metadata), Metadata)
+            self.assertIsInstance(metadata, Metadata)
             self.assertEqual(len(metadata), len(model_metadata))
             self.assertEqual(sorted(metadata), sorted(model_metadata))
             self.assertEqual(sorted(metadata.keys()), sorted(model_metadata.keys()))
             self.assertEqual(sorted(metadata.values()), sorted(model_metadata.values()))
             self.assertEqual(sorted(metadata.items()), sorted(model_metadata.items()))
             for k in metadata:
-                self.assertEqual(type(k), str)
-                self.assertEqual(type(metadata[k]), str)
-            for k in None, 42, str.join('+', model_metadata):
+                self.assertIsInstance(k, str)
+                self.assertIsInstance(metadata[k], str)
+            for k in None, 42, '+'.join(model_metadata):
                 with self.assertRaises(KeyError) as ecm:
-                    metadata[k]
+                    _ = metadata[k]
                 self.assertEqual(ecm.exception.args, (k,))
         finally:
             test_file.close()
+
 
 class SexprTestCase(TestCase):
 
     def test(self):
         context = Context()
-        document = context.new_document(FileUri(images + 'test0.djvu'))
-        self.assertEqual(type(document), Document)
+        document = context.new_document(FileUri(IMAGES + 'test0.djvu'))
+        self.assertIsInstance(document, Document)
         message = document.get_message()
-        self.assertEqual(type(message), DocInfoMessage)
+        self.assertIsInstance(message, DocInfoMessage)
         anno = DocumentAnnotations(document, shared=False)
-        self.assertEqual(type(anno), DocumentAnnotations)
+        self.assertIsInstance(anno, DocumentAnnotations)
         anno.wait()
         x = anno.sexpr
         self.assertEqual(x, Expression([]))
         anno = document.annotations
-        self.assertEqual(type(anno), DocumentAnnotations)
+        self.assertIsInstance(anno, DocumentAnnotations)
         anno.wait()
         self.assertIs(anno.background_color, None)
         self.assertIs(anno.horizontal_align, None)
@@ -719,9 +733,10 @@ class SexprTestCase(TestCase):
         ]
         expected_xmp = [
             Symbol('xmp'),
-            '<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">'
-            '<rdf:Description rdf:about="">'
-                '<xmpMM:History xmlns:xmpMM="http://ns.adobe.com/xap/1.0/mm/"><rdf:Seq><rdf:li xmlns:stEvt="http://ns.adobe.com/xap/1.0/sType/ResourceEvent#" stEvt:action="converted" stEvt:parameters="from application/pdf to image/vnd.djvu" stEvt:softwareAgent="pdf2djvu 0.8.1 (DjVuLibre 3.5.27, Poppler 0.26.5, GraphicsMagick++ 1.3.21, GNOME XSLT 1.1.28, GNOME XML 2.9.2, PStreams 0.8.0)" stEvt:when="2015-08-17T17:54:58+00:00"/></rdf:Seq></xmpMM:History>'
+            (
+                '<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">'
+                '<rdf:Description rdf:about="">'
+                '<xmpMM:History xmlns:xmpMM="http://ns.adobe.com/xap/1.0/mm/"><rdf:Seq><rdf:li xmlns:stEvt="http://ns.adobe.com/xap/1.0/sType/ResourceEvent#" stEvt:action="converted" stEvt:parameters="from application/pdf to image/vnd.djvu" stEvt:softwareAgent="pdf2djvu 0.8.1 (DjVuLibre 3.5.27, Poppler 0.26.5, GraphicsMagick++ 1.3.21, GNOME XSLT 1.1.28, GNOME XML 2.9.2, PStreams 0.8.0)" stEvt:when="2015-08-17T17:54:58+00:00"/></rdf:Seq></xmpMM:History>'  # noqa: E501
                 '<dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Jakub Wilk</dc:creator>'
                 '<dc:format xmlns:dc="http://purl.org/dc/elements/1.1/">image/vnd.djvu</dc:format>'
                 '<pdf:Producer xmlns:pdf="http://ns.adobe.com/pdf/1.3/">pdfTeX-1.40.16</pdf:Producer>'
@@ -729,34 +744,38 @@ class SexprTestCase(TestCase):
                 '<xmp:CreateDate xmlns:xmp="http://ns.adobe.com/xap/1.0/">2015-08-17T19:54:57+02:00</xmp:CreateDate>'
                 '<xmp:ModifyDate xmlns:xmp="http://ns.adobe.com/xap/1.0/">2015-08-17T19:54:57+02:00</xmp:ModifyDate>'
                 '<xmp:MetadataDate xmlns:xmp="http://ns.adobe.com/xap/1.0/">2015-08-17T17:54:58+00:00</xmp:MetadataDate>'
-            '</rdf:Description>'
-            '</rdf:RDF>\n'
+                '</rdf:Description>'
+                '</rdf:RDF>\n'
+            )
         ]
         self.assertEqual(
             anno.sexpr,
             Expression([expected_metadata, expected_xmp])
         )
         metadata = anno.metadata
-        self.assertEqual(type(metadata), Metadata)
+        self.assertIsInstance(metadata, Metadata)
         hyperlinks = anno.hyperlinks
-        self.assertEqual(type(hyperlinks), Hyperlinks)
+        self.assertIsInstance(hyperlinks, Hyperlinks)
         self.assertEqual(len(hyperlinks), 0)
         self.assertEqual(list(hyperlinks), [])
         outline = document.outline
-        self.assertEqual(type(outline), DocumentOutline)
+        self.assertIsInstance(outline, DocumentOutline)
         outline.wait()
-        self.assertEqual(outline.sexpr, Expression(
-            [Symbol('bookmarks'),
+        self.assertEqual(
+            outline.sexpr,
+            Expression([
+                Symbol('bookmarks'),
                 ['Lorem ipsum', '#p0001.djvu'],
-                ['Hyperlinks', '#p0002.djvu',
+                [
+                    'Hyperlinks', '#p0002.djvu',
                     ['local', '#p0002.djvu'],
                     ['remote', '#p0002.djvu']
                 ]
-            ]
-        ))
+            ])
+        )
         page = document.pages[1]
         anno = page.annotations
-        self.assertEqual(type(anno), PageAnnotations)
+        self.assertIsInstance(anno, PageAnnotations)
         anno.wait()
         self.assertIs(anno.background_color, None)
         self.assertIs(anno.horizontal_align, None)
@@ -772,68 +791,88 @@ class SexprTestCase(TestCase):
             Expression([expected_metadata, expected_xmp] + expected_hyperlinks)
         )
         page_metadata = anno.metadata
-        self.assertEqual(type(page_metadata), Metadata)
+        self.assertIsInstance(page_metadata, Metadata)
         self.assertEqual(page_metadata.keys(), metadata.keys())
         self.assertEqual([page_metadata[k] == metadata[k] for k in metadata], [True, True, True, True, True])
         hyperlinks = anno.hyperlinks
-        self.assertEqual(type(hyperlinks), Hyperlinks)
+        self.assertIsInstance(hyperlinks, Hyperlinks)
         self.assertEqual(len(hyperlinks), 2)
         self.assertEqual(
             list(hyperlinks),
             [Expression(h) for h in expected_hyperlinks]
         )
         text = page.text
-        self.assertEqual(type(text), PageText)
+        self.assertIsInstance(text, PageText)
         text.wait()
         text_s = text.sexpr
-        text_s_detail = [PageText(page, details).sexpr for details in (TEXT_DETAILS_PAGE, TEXT_DETAILS_COLUMN, TEXT_DETAILS_REGION, TEXT_DETAILS_PARAGRAPH, TEXT_DETAILS_LINE, TEXT_DETAILS_WORD, TEXT_DETAILS_CHARACTER, TEXT_DETAILS_ALL)]
+        text_s_detail = [
+            PageText(page, details).sexpr
+            for details in (
+                TEXT_DETAILS_PAGE, TEXT_DETAILS_COLUMN, TEXT_DETAILS_REGION, TEXT_DETAILS_PARAGRAPH, TEXT_DETAILS_LINE, TEXT_DETAILS_WORD,
+                TEXT_DETAILS_CHARACTER, TEXT_DETAILS_ALL
+            )
+        ]
         self.assertEqual(text_s_detail[0], text_s_detail[1])
         self.assertEqual(text_s_detail[1], text_s_detail[2])
         self.assertEqual(text_s_detail[2], text_s_detail[3])
         self.assertEqual(
             text_s_detail[0],
-            Expression(
-                [Symbol('page'), 0, 0, 2550, 3300,
+            Expression([
+                Symbol('page'), 0, 0, 2550, 3300,
+                (
                     '2 Hyperlinks \n'
-                    '2.1 local \n' +
-                    '→1 \n' +
+                    '2.1 local \n'
+                    '→1 \n'
                     '2.2 remote \nhttp://jwilk.net/ \n'
                     '2 \n'
-                ]
-            )
+                )
+            ])
         )
         self.assertEqual(
             text_s_detail[4],
-            Expression(
-                [Symbol('page'), 0, 0, 2550, 3300,
-                    [Symbol('line'), 462, 2712, 910, 2777, '2 Hyperlinks '],
-                    [Symbol('line'), 462, 2599, 714, 2641, '2.1 local '],
-                    [Symbol('line'), 464, 2505, 544, 2540, '→1 '],
-                    [Symbol('line'), 462, 2358, 772, 2400, '2.2 remote '],
-                    [Symbol('line'), 463, 2256, 964, 2298, 'http://jwilk.net/ '],
-                    [Symbol('line'), 1260, 375, 1282, 409, '2 ']
-                ]
-            )
+            Expression([
+                Symbol('page'), 0, 0, 2550, 3300,
+                [Symbol('line'), 462, 2712, 910, 2777, '2 Hyperlinks '],
+                [Symbol('line'), 462, 2599, 714, 2641, '2.1 local '],
+                [Symbol('line'), 464, 2505, 544, 2540, '→1 '],
+                [Symbol('line'), 462, 2358, 772, 2400, '2.2 remote '],
+                [Symbol('line'), 463, 2256, 964, 2298, 'http://jwilk.net/ '],
+                [Symbol('line'), 1260, 375, 1282, 409, '2 ']
+            ])
         )
         self.assertEqual(text_s_detail[5], text_s)
         self.assertEqual(text_s_detail[6], text_s)
         self.assertEqual(text_s_detail[7], text_s)
         self.assertEqual(
             text_s,
-            Expression(
-                [Symbol('page'), 0, 0, 2550, 3300,
-                    [Symbol('line'), 462, 2712, 910, 2777, [Symbol('word'), 462, 2727, 495, 2776, '2'], [Symbol('word'), 571, 2712, 910, 2777, 'Hyperlinks']],
-                    [Symbol('line'), 462, 2599, 714, 2641, [Symbol('word'), 462, 2599, 532, 2641, '2.1'], [Symbol('word'), 597, 2599, 714, 2640, 'local']],
-                    [Symbol('line'), 464, 2505, 544, 2540, [Symbol('word'), 464, 2505, 544, 2540, '→1']],
-                    [Symbol('line'), 462, 2358, 772, 2400, [Symbol('word'), 462, 2358, 535, 2400, '2.2'], [Symbol('word'), 598, 2358, 772, 2397, 'remote']],
-                    [Symbol('line'), 463, 2256, 964, 2298, [Symbol('word'), 463, 2256, 964, 2298, 'http://jwilk.net/']],
-                    [Symbol('line'), 1260, 375, 1282, 409, [Symbol('word'), 1260, 375, 1282, 409, '2']]
-                ]
-            )
+            Expression([
+                Symbol('page'), 0, 0, 2550, 3300,
+                [
+                    Symbol('line'), 462, 2712, 910, 2777, [Symbol('word'), 462, 2727, 495, 2776, '2'],
+                    [Symbol('word'), 571, 2712, 910, 2777, 'Hyperlinks']
+                ],
+                [
+                    Symbol('line'), 462, 2599, 714, 2641, [Symbol('word'), 462, 2599, 532, 2641, '2.1'],
+                    [Symbol('word'), 597, 2599, 714, 2640, 'local']
+                ],
+                [Symbol('line'), 464, 2505, 544, 2540, [Symbol('word'), 464, 2505, 544, 2540, '→1']],
+                [
+                    Symbol('line'), 462, 2358, 772, 2400, [Symbol('word'), 462, 2358, 535, 2400, '2.2'],
+                    [Symbol('word'), 598, 2358, 772, 2397, 'remote']
+                ],
+                [Symbol('line'), 463, 2256, 964, 2298, [Symbol('word'), 463, 2256, 964, 2298, 'http://jwilk.net/']],
+                [Symbol('line'), 1260, 375, 1282, 409, [Symbol('word'), 1260, 375, 1282, 409, '2']]
+            ])
         )
         with self.assertRaisesString(TypeError, 'details must be a symbol or none'):
             PageText(page, 'eggs')
-        with self.assertRaisesString(ValueError, 'details must be equal to TEXT_DETAILS_PAGE, or TEXT_DETAILS_COLUMN, or TEXT_DETAILS_REGION, or TEXT_DETAILS_PARAGRAPH, or TEXT_DETAILS_LINE, or TEXT_DETAILS_WORD, or TEXT_DETAILS_CHARACTER or TEXT_DETAILS_ALL'):
+        with self.assertRaisesString(
+                ValueError,
+                (
+                    'details must be equal to TEXT_DETAILS_PAGE, or TEXT_DETAILS_COLUMN, or TEXT_DETAILS_REGION, or TEXT_DETAILS_PARAGRAPH,'
+                    ' or TEXT_DETAILS_LINE, or TEXT_DETAILS_WORD, or TEXT_DETAILS_CHARACTER or TEXT_DETAILS_ALL'
+                )
+        ):
             PageText(page, Symbol('eggs'))
 
 
@@ -848,7 +887,8 @@ class WildcardImportTestCase(TestCase):
     def test_wildcard_import(self):
         namespace = wildcard_import('djvu.decode')
         self.assertListEqual(
-            sorted(namespace.keys()), [
+            sorted(namespace.keys()),
+            [
                 'AffineTransform',
                 'Annotations',
                 'ChunkMessage',

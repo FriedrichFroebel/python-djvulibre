@@ -46,7 +46,7 @@ class TestTextZones(TestCase):
 
     def test_type(self):
         for zone in self.zones:
-            self.assertEqual(type(zone), TextZoneType)
+            self.assertIsInstance(zone, TextZoneType)
             self.assertIsInstance(zone, Symbol)
 
     def test_repr(self):
@@ -71,18 +71,19 @@ class TestTextZones(TestCase):
         self.assertNotEqual(TEXT_ZONE_PAGE, '')
         self.assertNotEqual(TEXT_ZONE_PAGE, 42)
         with self.assertRaisesString(TypeError, 'cannot compare text zone type with other object'):
-            TEXT_ZONE_PAGE < 42
+            _ = TEXT_ZONE_PAGE < 42
         with self.assertRaisesString(TypeError, 'cannot compare text zone type with other object'):
-            TEXT_ZONE_PAGE <= 42
+            _ = TEXT_ZONE_PAGE <= 42
         with self.assertRaisesString(TypeError, 'cannot compare text zone type with other object'):
-            TEXT_ZONE_PAGE > 42
+            _ = TEXT_ZONE_PAGE > 42
         with self.assertRaisesString(TypeError, 'cannot compare text zone type with other object'):
-            TEXT_ZONE_PAGE >= 42
+            _ = TEXT_ZONE_PAGE >= 42
 
     def test_comparison2(self):
         self.assertEqual(self.zones, sorted(self.zones, reverse=True))
         self.assertEqual(
-            [[self.compare(z1, z2) for z1 in self.zones] for z2 in self.zones], [
+            [[self.compare(z1, z2) for z1 in self.zones] for z2 in self.zones],
+            [
                 [0, -1, -1, -1, -1, -1, -1],
                 [+1, 0, -1, -1, -1, -1, -1],
                 [+1, +1, 0, -1, -1, -1, -1],
@@ -98,7 +99,8 @@ class WildcardImportTestCase(TestCase):
     def test_wildcard_import(self):
         namespace = wildcard_import('djvu.const')
         self.assertListEqual(
-            sorted(namespace.keys()), [
+            sorted(namespace.keys()),
+            [
                 'ANNOTATION_ALIGN',
                 'ANNOTATION_BACKGROUND',
                 'ANNOTATION_MAPAREA',

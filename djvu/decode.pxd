@@ -11,14 +11,16 @@
 # or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
 # more details.
 
-#cython: language_level=2
+# cython: language_level=2
 
 cdef extern from 'stdio.h':
     ctypedef struct FILE
 
+
 from djvu.sexpr cimport cexpr_t, _WrappedCExpr
 from djvu.sexpr cimport public_c2py as cexpr2py
 from djvu.sexpr cimport public_py2c as py2cexpr
+
 
 cdef extern from 'libdjvu/ddjvuapi.h':
     struct ddjvu_context_s
@@ -182,18 +184,24 @@ cdef extern from 'libdjvu/ddjvuapi.h':
         ddjvu_message_thumbnail_s m_thumbnail
         ddjvu_message_progress_s m_progress
 
+
 cdef class Context
 
+
 cdef class Document
+
 
 cdef class DocumentExtension:
     cdef Document _document
 
+
 cdef class DocumentPages(DocumentExtension):
     pass
 
+
 cdef class DocumentFiles(DocumentExtension):
     cdef object _page_map
+
 
 cdef class Document:
     cdef ddjvu_document_t* ddjvu_document
@@ -206,28 +214,35 @@ cdef class Document:
     cdef object _init(self, Context context, ddjvu_document_t* ddjvu_document)
     cdef object _clear(self)
 
+
 cdef class _SexprWrapper:
     cdef object _document_weakref
     cdef cexpr_t _cexpr
 
+
 cdef class DocumentOutline(DocumentExtension):
     cdef _SexprWrapper _sexpr
     cdef object _update_sexpr(self)
+
 
 cdef class Annotations:
     cdef _SexprWrapper _sexpr
     cdef object _update_sexpr(self)
     cdef Document _document
 
+
 cdef class DocumentAnnotations(Annotations):
     cdef int _compat
+
 
 cdef class Hyperlinks:
     cdef object _sexpr
 
+
 cdef class Metadata:
     cdef Annotations _annotations
     cdef object _keys
+
 
 cdef class File:
     cdef int _n
@@ -236,6 +251,7 @@ cdef class File:
     cdef Document _document
     cdef object _get_info(self)
 
+
 cdef class Page:
     cdef Document _document
     cdef ddjvu_pageinfo_t ddjvu_pageinfo
@@ -243,8 +259,10 @@ cdef class Page:
     cdef int _n
     cdef object _get_info(self)
 
+
 cdef class PageAnnotations(Annotations):
     cdef Page _page
+
 
 cdef class PageText:
     cdef Page _page
@@ -252,9 +270,11 @@ cdef class PageText:
     cdef _SexprWrapper _sexpr
     cdef object _update_sexpr(self)
 
+
 cdef class Context:
     cdef ddjvu_context_t* ddjvu_context
     cdef object _queue
+
 
 cdef class PixelFormat:
     cdef ddjvu_format_t* ddjvu_format
@@ -264,21 +284,27 @@ cdef class PixelFormat:
     cdef int _y_direction
     cdef double _gamma
 
+
 cdef class PixelFormatRgb(PixelFormat):
     cdef int _rgb
+
 
 cdef class PixelFormatRgbMask(PixelFormat):
     cdef unsigned int _params[4]
 
+
 cdef class PixelFormatGrey(PixelFormat):
     pass
+
 
 cdef class PixelFormatPalette(PixelFormat):
     cdef unsigned int _palette[216]
 
+
 cdef class PixelFormatPackedBits(PixelFormat):
     cdef int _little_endian
     pass
+
 
 cdef class Job:
     cdef Context _context
@@ -289,18 +315,23 @@ cdef class Job:
     cdef object _clear(self)
     cdef object __weakref__
 
+
 cdef class PageJob(Job):
     pass
 
+
 cdef class SaveJob(Job):
     cdef object _file
+
 
 cdef class DocumentDecodingJob(Job):
     cdef object _document
     cdef object _init_ddj(self, Document document)
 
+
 cdef class AffineTransform:
     cdef ddjvu_rectmapper_t* ddjvu_rectmapper
+
 
 cdef class Message:
     cdef ddjvu_message_t* ddjvu_message
@@ -310,44 +341,56 @@ cdef class Message:
     cdef Job _job
     cdef object _init(self)
 
+
 cdef class ErrorMessage(Message):
     cdef object _message
     cdef object _location
 
+
 cdef class InfoMessage(Message):
     cdef object _message
+
 
 cdef class Stream:
     cdef int _streamid
     cdef int _open
     cdef Document _document
 
+
 cdef class NewStreamMessage(Message):
     cdef object _name
     cdef object _uri
     cdef Stream _stream
 
+
 cdef class DocInfoMessage(Message):
     pass
+
 
 cdef class PageInfoMessage(Message):
     pass
 
+
 cdef class ChunkMessage(Message):
     pass
+
 
 cdef class RelayoutMessage(ChunkMessage):
     pass
 
+
 cdef class RedisplayMessage(ChunkMessage):
     pass
+
 
 cdef class ThumbnailMessage(Message):
     cdef int _page_no
 
+
 cdef class ProgressMessage(Message):
     cdef int _percent
     cdef ddjvu_status_t _status
+
 
 cdef class Thumbnail:
     cdef Page _page
