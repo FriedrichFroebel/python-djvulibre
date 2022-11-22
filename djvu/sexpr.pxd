@@ -11,7 +11,7 @@
 # or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
 # more details.
 
-#cython: language_level=2
+# cython: language_level=2
 
 cdef extern from 'libdjvu/miniexp.h':
     struct cexpr_s 'miniexp_s'
@@ -20,11 +20,13 @@ cdef extern from 'libdjvu/miniexp.h':
     cdef extern struct cvar_s 'minivar_s'
     ctypedef cvar_s cvar_t 'minivar_t'
 
+
 cdef class _WrappedCExpr:
     cdef cvar_t* cvar
     cdef cexpr_t cexpr(self)
     cdef object print_into(self, object, object, bint)
     cdef object as_string(self, object, bint)
+
 
 cdef object public_c2py(cexpr_t)
 cdef _WrappedCExpr public_py2c(object)

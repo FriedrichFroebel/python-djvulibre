@@ -18,9 +18,8 @@ import contextlib
 import locale
 import os
 import shutil
-import sys
-from unittest import SkipTest, TestCase as _TestCase
 from io import StringIO
+from unittest import SkipTest, TestCase as _TestCase
 
 
 try:
@@ -47,14 +46,14 @@ class TestCase(_TestCase):
     maxDiff = None
 
     @contextlib.contextmanager
-    def assertRaisesString(self, exception_type, expected_string):
+    def assertRaisesString(self, exception_type, expected_string):  # noqa: N802
         with self.assertRaises(exception_type) as ecm:
             yield
         self.assertEqual(str(ecm.exception), expected_string)
-    
-    def assertRepr(self, obj, expected):
+
+    def assertRepr(self, obj, expected):  # noqa: N802
         self.assertEqual(repr(obj), expected)
-    
+
     @classmethod
     def compare(cls, x, y):
         if x == y:
@@ -65,10 +64,10 @@ class TestCase(_TestCase):
             return 1
         assert False
 
-    
+
 @contextlib.contextmanager
 def interim(obj, **override):
-    copy = dict((key, getattr(obj, key)) for key in override)
+    copy = {key: getattr(obj, key) for key in override}
     for key, value in override.items():
         setattr(obj, key, value)
     try:
@@ -76,6 +75,7 @@ def interim(obj, **override):
     finally:
         for key, value in copy.items():
             setattr(obj, key, value)
+
 
 @contextlib.contextmanager
 def interim_locale(**kwargs):
@@ -85,17 +85,19 @@ def interim_locale(**kwargs):
             category = getattr(locale, category)
             try:
                 locale.setlocale(category, value)
-            except locale.Error as exc:
-                raise SkipTest(exc)
+            except locale.Error as exception:
+                raise SkipTest(exception)
         yield
     finally:
         locale.setlocale(locale.LC_ALL, old_locale)
 
+
 def skip_unless_c_messages():
-    if locale.setlocale(locale.LC_MESSAGES) not in ('C', 'POSIX'):
+    if locale.setlocale(locale.LC_MESSAGES) not in {'C', 'POSIX'}:
         raise SkipTest('you need to run this test with LC_MESSAGES=C')
     if os.getenv('LANGUAGE', '') != '':
         raise SkipTest('you need to run this test with LANGUAGE unset')
+
 
 def skip_unless_translation_exists(lang):
     messages = {}
@@ -107,9 +109,10 @@ def skip_unless_translation_exists(lang):
             except EnvironmentError as exc:
                 messages[lang] = str(exc)
     messages = set(messages.values())
-    assert 1 <= len(messages) <= 2
+    assert 1 <= len(messages) <= 2, messages
     if len(messages) == 1:
         raise SkipTest('libc translation not found: ' + lang)
+
 
 def skip_unless_command_exists(command):
     if shutil.which(command):
@@ -119,40 +122,15 @@ def skip_unless_command_exists(command):
 
 def wildcard_import(mod):
     namespace = {}
-    exec('from {mod} import *'.format(mod=mod), {}, namespace)
+    exec(f'from {mod} import *', {}, namespace)
     return namespace
 
 
 __all__ = [
-    # Python 2/3 compat:
     'StringIO',
-    'b',
-    'cmp',
-    'long',
-    'py3k',
-    'u',
-    'unicode',
-    # unittest(-like)
     'SkipTest',
     'TestCase',
-    'testcase',
-    # nose-compatible
-    'assert_equal',
-    'assert_false',
-    'assert_in',
-    'assert_is',
-    'assert_is_instance',
-    'assert_less',
-    'assert_list_equal',
-    'assert_multi_line_equal',
-    'assert_not_equal',
-    'assert_not_in',
-    'assert_raises',
-    'assert_raises_regex',
-    'assert_true',
     # misc
-    'assert_raises_str',
-    'assert_repr',
     'get_changelog_version',
     'interim',
     'interim_locale',

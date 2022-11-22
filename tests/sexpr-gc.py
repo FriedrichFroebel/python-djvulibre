@@ -19,23 +19,25 @@ if __name__ != '__main__':
 import djvu.sexpr
 import os
 
-proc_status = '/proc/{pid}/status'.format(pid=os.getpid())
+proc_status = f'/proc/{os.getpid()}/status'
 scale = dict(kB=1024)
+
 
 def mem_info(key='VmSize'):
     try:
         fd = open(proc_status)
         for line in fd.readlines():
-            if line.startswith('{key}:'.format(key=key)):
+            if line.startswith(f'{key}:'):
                 _, value, unit = line.split(None, 3)
                 return int(value) * scale[unit]
     finally:
         fd.close()
 
+
 step = 1 << 17
 while True:
     mb = mem_info() / (1 << 20)
-    print('{mb:.2f}M'.format(mb=mb))
+    print(f'{mb:.2f}M')
     [djvu.sexpr.Expression(4) for i in range(step)]
 
 # vim:ts=4 sts=4 sw=4 et

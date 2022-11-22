@@ -13,9 +13,12 @@
 # or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
 # more details.
 
-'''DjVuLibre bindings: various constants.'''
+"""
+DjVuLibre bindings: various constants.
+"""
 
 import djvu.sexpr
+
 
 EMPTY_LIST = djvu.sexpr.Expression([])
 EMPTY_OUTLINE = djvu.sexpr.Expression([djvu.sexpr.Symbol('bookmarks')])
@@ -61,13 +64,13 @@ Trapped'''.split())
 
 METADATA_KEYS = METADATA_BIBTEX_KEYS | METADATA_PDFINFO_KEYS
 
-class TextZoneType(djvu.sexpr.Symbol):
 
-    '''
-    A type of a text zone. You can compare text zone types with the < operator.
+class TextZoneType(djvu.sexpr.Symbol):
+    """
+    Type of text zone. You can compare text zone types with the < operator.
 
     To create objects of this class, use the get_text_zone_type() function.
-    '''
+    """
 
     __cache = {}
 
@@ -104,11 +107,8 @@ class TextZoneType(djvu.sexpr.Symbol):
         return self.__rank >= other.__rank
 
     def __repr__(self):
-        return '<{mod}.{cls}: {name}>'.format(
-            mod=self.__module__,
-            cls=type(self).__name__,
-            name=self
-        )
+        return f'<{self.__module__}.{type(self).__name__}: {self}>'
+
 
 TEXT_ZONE_PAGE = TextZoneType('page', 7)
 TEXT_ZONE_COLUMN = TextZoneType('column', 6)
@@ -118,8 +118,10 @@ TEXT_ZONE_LINE = TextZoneType('line', 3)
 TEXT_ZONE_WORD = TextZoneType('word', 2)
 TEXT_ZONE_CHARACTER = TextZoneType('char', 1)
 
+
 def get_text_zone_type(symbol):
     return TextZoneType.from_symbol(symbol)
+
 
 TEXT_ZONE_SEPARATORS = {
     TEXT_ZONE_PAGE: '\f',  # Form Feed (FF)

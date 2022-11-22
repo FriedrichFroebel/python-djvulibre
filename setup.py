@@ -13,17 +13,15 @@
 # or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
 # more details.
 
-'''
+"""
 *python-djvulibre* is a set of Python bindings for
-the `DjVuLibre <http://djvu.sourceforge.net/>`_ library,
+the `DjVuLibre <https://djvu.sourceforge.net/>`_ library,
 an open source implementation of `DjVu <http://djvu.org/>`_.
-'''
+"""
 
 import glob
-import io
 import logging
 import os
-import re
 import subprocess as ipc
 import sys
 
@@ -46,12 +44,13 @@ class PackageVersionError(Exception):
     pass
 
 
-def ext_modules():
+def get_ext_modules():
     for pyx_file in glob.iglob(os.path.join('djvu', '*.pyx')):
         module, _ = os.path.splitext(os.path.basename(pyx_file))
         yield module
 
-ext_modules = list(ext_modules())
+
+ext_modules = list(get_ext_modules())
 
 
 def get_version():
@@ -72,7 +71,7 @@ def run_pkgconfig(*cmdline):
             stdout=ipc.PIPE, stderr=ipc.PIPE
         )
     except EnvironmentError as exc:
-        msg = 'cannot execute pkg-config: {exc.strerror}'.format(exc=exc)
+        msg = f'cannot execute pkg-config: {exc.strerror}'
         logger.warning(msg)
         return
     stdout, stderr = pkgconfig.communicate()
@@ -128,7 +127,8 @@ def get_djvulibre_version():
     return Version(version)
 
 
-class build_ext(_build_ext):
+class BuildExtension(_build_ext):
+    name = 'build_ext'
 
     def run(self):
         djvulibre_version = get_djvulibre_version()
@@ -141,8 +141,8 @@ class build_ext(_build_ext):
                 getattr(extension, attr)
                 setattr(extension, attr, flags)
         new_config = [
-            'DEF PYTHON_DJVULIBRE_VERSION = b"{0}"'.format(py_version),
-            'DEF HAVE_MINIEXP_IO_T = {0}'.format(djvulibre_version >= Version('3.5.26')),
+            f'DEF PYTHON_DJVULIBRE_VERSION = b"{py_version}"',
+            f'DEF HAVE_MINIEXP_IO_T = {djvulibre_version >= Version("3.5.26")}',
         ]
         self.src_dir = src_dir = os.path.join(self.build_temp, 'src')
         os.makedirs(src_dir, exist_ok=True)
@@ -154,7 +154,7 @@ class build_ext(_build_ext):
             old_config = ''
         new_config = '\n'.join(new_config)
         if new_config.strip() != old_config.strip():
-            logger.info('creating {conf!r}'.format(conf=self.config_path))
+            logger.info(f'creating {self.config_path!r}')
             with open(self.config_path, mode='w') as fd:
                 fd.write(new_config)
         _build_ext.run(self)
@@ -170,23 +170,27 @@ class build_ext(_build_ext):
             source_base = os.path.basename(source)
             target = os.path.join(
                 self.src_dir,
-                '{mod}.c'.format(mod=source_base[:-4])
+                f'{source_base[:-4]}.c'
             )
             yield target
             depends = [source, self.config_path] + ext.depends
-            logger.debug('cythonizing {ext.name!r} extension'.format(ext=ext))
-            def build_c(source, target):
+            logger.debug(f'cythonizing {ext.name!r} extension')
+
+            def build_c(source_, target_):
                 ipc.run([
                     sys.executable, '-m', 'cython',
                     '-I', os.path.dirname(self.config_path),
-                    '-o', target,
-                    source,
+                    '-o', target_,
+                    source_,
                 ])
+
             self.make_file(depends, target, build_c, [source, target])
 
 
 if sphinx_setup_command:
-    class build_sphinx(sphinx_setup_command.BuildDoc):
+    class BuildSphinx(sphinx_setup_command.BuildDoc):
+        name = 'build_sphinx'
+
         def run(self):
             # Make sure that djvu module is imported from the correct
             # directory.
@@ -202,10 +206,11 @@ if sphinx_setup_command:
             del sys.path[0]
             sphinx_setup_command.BuildDoc.run(self)
 else:
-    build_sphinx = None
+    BuildSphinx = None
 
 
-class sdist(_sdist):
+class Sdist(_sdist):
+    name = 'sdist'
 
     def maybe_move_file(self, base_dir, src, dst):
         src = os.path.join(base_dir, src)
@@ -216,6 +221,7 @@ class sdist(_sdist):
     def make_release_tree(self, base_dir, files):
         _sdist.make_release_tree(self, base_dir, files)
         self.maybe_move_file(base_dir, 'COPYING', 'doc/COPYING')
+
 
 classifiers = '''
 Development Status :: 4 - Beta
@@ -246,15 +252,15 @@ setup_params = dict(
     packages=['djvu'],
     ext_modules=[
         setuptools.Extension(
-            'djvu.{mod}'.format(mod=name),
-            ['djvu/{mod}.pyx'.format(mod=name)],
+            f'djvu.{name}',
+            [f'djvu/{name}.pyx'],
             depends=(['djvu/common.pxi'] + glob.glob('djvu/*.pxd')),
         )
         for name in ext_modules
     ],
     cmdclass=dict(
-        (cmd.__name__, cmd)
-        for cmd in (build_ext, build_sphinx, sdist, bdist_wheel)
+        (cmd.__name__ if not hasattr(cmd, 'name') else cmd.name, cmd)
+        for cmd in (BuildExtension, BuildSphinx, Sdist, bdist_wheel)
         if cmd is not None
     ),
     py_modules=['djvu.const'],

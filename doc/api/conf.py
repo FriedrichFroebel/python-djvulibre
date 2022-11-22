@@ -26,7 +26,7 @@ source_suffix = '.rst'
 source_encoding = 'UTF-8'
 master_doc = 'index'
 
-import setup as _setup
+import setup as _setup  # noqa: E402
 project = _setup.setup_params['name']
 version = release = _setup.py_version
 
@@ -52,8 +52,10 @@ rst_epilog = '''
 
 # With a bit of our help, docutils is capable of rendering our simple formulas.
 # Sphinx math extension is not needed.
-import sphinx.writers.html
+import sphinx.writers.html  # noqa: E402
 del sphinx.writers.html.HTMLTranslator.visit_math
+
+
 def setup(app):
     try:
         # added in Sphinx 1.8
