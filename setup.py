@@ -30,12 +30,6 @@ from setuptools.command.build_ext import build_ext as _build_ext
 from setuptools.command.sdist import sdist as _sdist
 from wheel.bdist_wheel import bdist_wheel
 
-try:
-    import sphinx.setup_command as sphinx_setup_command
-except ImportError:
-    sphinx_setup_command = None
-
-
 logger = logging.getLogger(__name__)
 del logging
 
@@ -187,28 +181,6 @@ class BuildExtension(_build_ext):
             self.make_file(depends, target, build_c, [source, target])
 
 
-if sphinx_setup_command:
-    class BuildSphinx(sphinx_setup_command.BuildDoc):
-        name = 'build_sphinx'
-
-        def run(self):
-            # Make sure that djvu module is imported from the correct
-            # directory.
-            #
-            # The current directory (which is normally in sys.path[0]) is
-            # typically a wrong choice: it contains djvu/__init__.py but not
-            # the extension modules. Prepend the directory that build_ext would
-            # use instead.
-            build_ext = self.get_finalized_command('build_ext')
-            sys.path[:0] = [build_ext.build_lib]
-            for ext in ext_modules:
-                __import__('djvu.' + ext)
-            del sys.path[0]
-            sphinx_setup_command.BuildDoc.run(self)
-else:
-    BuildSphinx = None
-
-
 class Sdist(_sdist):
     name = 'sdist'
 
@@ -260,7 +232,7 @@ setup_params = dict(
     ],
     cmdclass=dict(
         (cmd.__name__ if not hasattr(cmd, 'name') else cmd.name, cmd)
-        for cmd in (BuildExtension, BuildSphinx, Sdist, bdist_wheel)
+        for cmd in (BuildExtension, Sdist, bdist_wheel)
         if cmd is not None
     ),
     py_modules=['djvu.const'],
