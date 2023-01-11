@@ -212,12 +212,11 @@ meta = dict(
     name='python-djvulibre',
     version=py_version,
     author='Jakub Wilk, FriedrichFröbel (fork)',
-    author_email='jwilk@jwilk.net',
     license='GNU GPL 2',
     description='Python support for the DjVu image format',
     long_description=__doc__.strip(),
     classifiers=classifiers,
-    url='https://jwilk.net/software/python-djvulibre',
+    url='https://github.com/FriedrichFroebel/python-djvulibre',
 )
 
 setup_params = dict(
