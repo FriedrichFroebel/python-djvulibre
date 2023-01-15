@@ -1,0 +1,64 @@
+#!/usr/bin/env python
+
+import sys
+from pathlib import Path
+
+import requests
+import yaml
+from bs4 import BeautifulSoup
+
+
+DJVULIBRE_URL = "https://sourceforge.net/projects/djvu/rss?path=/DjVuLibre"
+
+
+def fetch_latest_djvulibre_release():
+    soup = BeautifulSoup(requests.get(DJVULIBRE_URL).content, features="xml")
+    item = soup.find("item")
+    version = item.find("title").text
+
+    assert version, version
+    assert version.startswith("/DjVuLibre/"), version
+    version = version.split("/DjVuLibre/")[1]
+    assert version, version
+    assert "/" in version, version
+    version = version.split("/")[0]
+    assert version, version
+    assert version.count(".") == 2, version
+    assert version.replace(".", "").isnumeric(), version
+    return version
+
+
+def get_all_workflow_files():
+    return Path(".github/workflows").glob("*.yml")
+
+
+def check_workflow(workflow_path, latest_djvulibre_release):
+    with open(workflow_path) as fd:
+        content = yaml.safe_load(fd)
+    env = content.get("env")
+    if not env:
+        return True
+
+    current_version = env.get("DJVULIBRE_VERSION")
+    if not current_version:
+        return True
+    if current_version != latest_djvulibre_release:
+        print(f"DjVuLibre version {latest_djvulibre_release} is available for {workflow_path} (currently: {current_version}).")
+        return False
+    return True
+
+
+def main():
+    latest_djvulibre_release = fetch_latest_djvulibre_release()
+    are_valid = True
+    for workflow_path in get_all_workflow_files():
+        are_valid &= check_workflow(
+            workflow_path=workflow_path,
+            latest_djvulibre_release=latest_djvulibre_release,
+        )
+    if not are_valid:
+        sys.exit(5)
+
+
+if __name__ == "__main__":
+    main()
