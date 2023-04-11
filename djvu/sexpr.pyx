@@ -11,8 +11,7 @@
 # or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
 # more details.
 
-#cython: autotestdict=False
-#cython: language_level=2
+# cython: language_level=3
 
 """
 DjVuLibre bindings: module for handling Lisp S-expressions.

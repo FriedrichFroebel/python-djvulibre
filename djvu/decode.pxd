@@ -11,7 +11,7 @@
 # or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
 # more details.
 
-# cython: language_level=2
+# cython: language_level=3
 
 cdef extern from 'stdio.h':
     ctypedef struct FILE
