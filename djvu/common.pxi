@@ -123,10 +123,4 @@ cdef int typecheck(object o, object type):
 cdef void raise_instantiation_error(object cls) except *:
     raise TypeError(f"cannot create '{get_type_name(cls)}' instances")
 
-# Cython before 0.25 did not support cdef classes deriving from Exception out of
-# the box: https://github.com/cython/cython/issues/1416
-cdef extern from 'pyerrors.h':
-    ctypedef class __builtin__.Exception [object PyBaseExceptionObject]:
-        pass
-
 # vim:ts=4 sts=4 sw=4 et ft=pyrex
