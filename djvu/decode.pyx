@@ -11,8 +11,7 @@
 # or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
 # more details.
 
-# cython: autotestdict=False
-# cython: language_level=2
+# cython: language_level=3
 
 """
 DjVuLibre bindings: module for efficiently decoding and displaying DjVu documents
@@ -759,7 +758,7 @@ cdef class File:
             cdef char buffer[2]
             self._get_info()
             buffer[0] = self.ddjvu_fileinfo.type
-            buffer[1] = '\0'
+            buffer[1] = b'\0'
             return charp_to_string(buffer)
 
     property n_page:
