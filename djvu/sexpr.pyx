@@ -212,7 +212,7 @@ cdef class _ExpressionIO:
 
 IF HAVE_MINIEXP_IO_T:
 
-    cdef int _myio_puts(cexpr_io_t* cio, const char *s):
+    cdef int _myio_puts(cexpr_io_t* cio, const char *s) noexcept:
         cdef _ExpressionIO io
         xio = <_ExpressionIO> cio.data[0]
         try:
@@ -224,7 +224,7 @@ IF HAVE_MINIEXP_IO_T:
             xio.exc = sys.exc_info()
             return EOF
 
-    cdef int _myio_getc(cexpr_io_t* cio):
+    cdef int _myio_getc(cexpr_io_t* cio) noexcept:
         cdef _ExpressionIO xio
         cdef int result
         xio = <_ExpressionIO> cio.data[0]
@@ -242,7 +242,7 @@ IF HAVE_MINIEXP_IO_T:
             xio.exc = sys.exc_info()
             return EOF
 
-    cdef int _myio_ungetc(cexpr_io_t* cio, int c):
+    cdef int _myio_ungetc(cexpr_io_t* cio, int c) noexcept:
         cdef _ExpressionIO io
         xio = <_ExpressionIO> cio.data[0]
         list_append(xio.buffer, c)
@@ -251,7 +251,7 @@ ELSE:
 
     cdef _ExpressionIO _myio
 
-    cdef int _myio_puts(const char *s):
+    cdef int _myio_puts(const char *s) noexcept:
         try:
             if _myio.stdout_binary:
                 _myio.stdout.write(s)
@@ -261,7 +261,7 @@ ELSE:
             _myio.exc = sys.exc_info()
             return EOF
 
-    cdef int _myio_getc():
+    cdef int _myio_getc() noexcept:
         cdef int result
         if _myio.buffer:
             return _myio.buffer.pop()
@@ -277,7 +277,7 @@ ELSE:
             _myio.exc = sys.exc_info()
             return EOF
 
-    cdef int _myio_ungetc(int c):
+    cdef int _myio_ungetc(int c) noexcept:
         list_append(_myio.buffer, c)
 
 
