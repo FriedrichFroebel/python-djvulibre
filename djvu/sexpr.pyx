@@ -57,7 +57,7 @@ cdef extern from 'libdjvu/miniexp.h':
     void cvar_free 'minivar_free'(cvar_t* v) nogil
     cexpr_t* cvar_ptr 'minivar_pointer'(cvar_t* v) nogil
 
-    if HAVE_MINIEXP_IO_T:
+    #ifdef HAVE_MINIEXP_IO_T
         ctypedef cexpr_io_s cexpr_io_t 'miniexp_io_t'
         struct cexpr_io_s 'miniexp_io_s':
             int (*puts 'fputs')(cexpr_io_t*, char*)
@@ -71,7 +71,7 @@ cdef extern from 'libdjvu/miniexp.h':
         cexpr_t cexpr_read 'miniexp_read_r'(cexpr_io_t *cio)
         cexpr_t cexpr_print 'miniexp_prin_r'(cexpr_io_t *cio, cexpr_t cexpr)
         cexpr_t cexpr_printw 'miniexp_pprin_r'(cexpr_io_t *cio, cexpr_t cexpr, int width)
-    else:
+    #else
         int io_7bit 'minilisp_print_7bits'
         int (*io_puts 'minilisp_puts')(char *s)
         int (*io_getc 'minilisp_getc')()
@@ -79,6 +79,7 @@ cdef extern from 'libdjvu/miniexp.h':
         cexpr_t cexpr_read 'miniexp_read'()
         cexpr_t cexpr_print 'miniexp_prin'(cexpr_t cexpr)
         cexpr_t cexpr_printw 'miniexp_pprin'(cexpr_t cexpr, int width)
+    #endif
 
 
 cdef extern from 'stdio.h':
@@ -105,20 +106,23 @@ symbol_dict = weakref.WeakValueDictionary()
 cdef object codecs
 import codecs
 
-if not HAVE_MINIEXP_IO_T:
-    cdef Lock _myio_lock
-    _myio_lock = allocate_lock()
+#ifdef HAVE_MINIEXP_IO_T
+#else
+cdef Lock _myio_lock
+_myio_lock = allocate_lock()
+#endif
 
 
 cdef class _ExpressionIO:
-    if HAVE_MINIEXP_IO_T:
+    #ifdef HAVE_MINIEXP_IO_T
         cdef cexpr_io_t cio
         cdef int flags
-    else:
+    #else
         cdef int (*backup_io_puts)(const char *s)
         cdef int (*backup_io_getc)()
         cdef int (*backup_io_ungetc)(int c)
         cdef int backup_io_7bit
+    #endif
     cdef object stdin 'stdin_fp'
     cdef object stdout 'stdout_fp'
     cdef int stdout_binary
@@ -128,7 +132,8 @@ cdef class _ExpressionIO:
     _reentrant = HAVE_MINIEXP_IO_T
 
     def __init__(self, object stdin=None, object stdout=None, int escape_unicode=True):
-        IF not HAVE_MINIEXP_IO_T:
+        #ifdef HAVE_MINIEXP_IO_T
+        #else
             global io_7bit, io_puts, io_getc, io_ungetc
             global _myio
             with nogil:
@@ -137,12 +142,13 @@ cdef class _ExpressionIO:
             self.backup_io_puts = io_puts
             self.backup_io_getc = io_getc
             self.backup_io_ungetc = io_ungetc
+        #endif
         self.stdin = stdin
         self.stdout = stdout
         self.stdout_binary = not hasattr(stdout, 'encoding')
         self.buffer = []
         self.exc = None
-        if HAVE_MINIEXP_IO_T:
+        #fidef HAVE_MINIEXP_IO_T
             cexpr_io_init(&self.cio)
             self.cio.data[0] = <void*>self
             self.cio.getc = _myio_getc
@@ -153,36 +159,43 @@ cdef class _ExpressionIO:
             else:
                 self.flags = 0
             self.cio.p_flags = &self.flags
-        else:
+        #else
             io_getc = _myio_getc
             io_ungetc = _myio_ungetc
             io_puts = _myio_puts
             io_7bit = escape_unicode
             _myio = self
+        #endif
 
     @cython.final
     cdef close(self):
-        IF not HAVE_MINIEXP_IO_T:
+        #ifdef HAVE_MINIEXP_IO_T
+        #else
             global io_7bit, io_puts, io_getc, io_ungetc
             global _myio
             _myio = None
+        #endif
         self.stdin = None
         self.stdout = None
         self.buffer = None
-        if not HAVE_MINIEXP_IO_T:
+        #ifdef HAVE_MINIEXP_IO_T
+        #else
             io_7bit = self.backup_io_7bit
             io_puts = self.backup_io_puts
             io_getc = self.backup_io_getc
             io_ungetc = self.backup_io_ungetc
+        #endif
         try:
             if self.exc is not None:
                 raise self.exc[0], self.exc[1], self.exc[2]
         finally:
-            IF not HAVE_MINIEXP_IO_T:
+            #ifdef HAVE_MINIEXP_IO_T
+            #else
                 release_lock(_myio_lock)
+            #endif
             self.exc = None
 
-    if HAVE_MINIEXP_IO_T:
+    #ifdef HAVE_MINIEXP_IO_T
 
         @cython.final
         cdef cexpr_t read(self):
@@ -196,7 +209,7 @@ cdef class _ExpressionIO:
         cdef cexpr_t printw(self, cexpr_t cexpr, int width):
             return cexpr_printw(&self.cio, cexpr, width)
 
-    else:
+    #else
 
         @cython.final
         cdef cexpr_t read(self):
@@ -209,8 +222,9 @@ cdef class _ExpressionIO:
         @cython.final
         cdef cexpr_t printw(self, cexpr_t cexpr, int width):
             return cexpr_printw(cexpr, width)
+    #endif
 
-if HAVE_MINIEXP_IO_T:
+#ifdef HAVE_MINIEXP_IO_T
 
     cdef int _myio_puts(cexpr_io_t* cio, const char *s) noexcept:
         cdef _ExpressionIO io
@@ -247,7 +261,7 @@ if HAVE_MINIEXP_IO_T:
         xio = <_ExpressionIO> cio.data[0]
         list_append(xio.buffer, c)
 
-else:
+#else
 
     cdef _ExpressionIO _myio
 
@@ -279,6 +293,7 @@ else:
 
     cdef int _myio_ungetc(int c) noexcept:
         list_append(_myio.buffer, c)
+#endif
 
 
 cdef object the_sentinel
