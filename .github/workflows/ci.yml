@@ -115,15 +115,15 @@ jobs:
         cd /
         pip uninstall -y python-djvulibre
         set +e; python -c 'import djvu'; [ $? -eq 1 ]
-    - name: build bdist_wheel
+    - name: build wheel
       run:
-        python setup.py bdist_wheel
+        python -m pip wheel --verbose --no-deps --wheel-dir dist .
     # Wheels are basically ZIP files.
-    - name: check bdist file
+    - name: check wheel file
       run: |
         unzip -l dist/*.whl | { ! grep -F /djvu/config.pxi; }
         unzip -l dist/*.whl | { grep "sexpr\.cpython-3[[:digit:]]\+-x86_64-linux-gnu\.so"; }
-    - name: install via bdist_wheel
+    - name: install via wheel
       run:
         python -m pip install dist/*.whl
     - name: check import
@@ -135,9 +135,9 @@ jobs:
         cd /
         pip uninstall -y python-djvulibre
         set +e; python -c 'import djvu'; [ $? -eq 1 ]
-    - name: install via setup.py
+    - name: install directly
       run:
-        python setup.py install
+        python -m pip install --verbose .
     - name: check import
       run: |
         cd /
