@@ -125,11 +125,9 @@ CONFIG_TEMPLATE = """
 cdef extern from *:
     \"\"\"
     #define PYTHON_DJVULIBRE_VERSION "{py_version}"
-    #define HAVE_MINIEXP_IO_T {have_miniexp_io_t}
     \"\"\"
 
     extern const char* PYTHON_DJVULIBRE_VERSION
-    extern const bint HAVE_MINIEXP_IO_T
 """
 
 
@@ -139,8 +137,8 @@ class BuildExtension(_build_ext):
     def run(self):
         djvulibre_version = get_djvulibre_version()
         from packaging.version import Version
-        if djvulibre_version != Version('0') and djvulibre_version < Version('3.5.21'):
-            raise PackageVersionError('DjVuLibre >= 3.5.21 is required')
+        if djvulibre_version != Version('0') and djvulibre_version < Version('3.5.26'):
+            raise PackageVersionError('DjVuLibre >= 3.5.26 is required')
         compiler_flags = pkgconfig_build_flags('ddjvuapi')
         for extension in self.extensions:
             for attr, flags in compiler_flags.items():
@@ -148,7 +146,6 @@ class BuildExtension(_build_ext):
                 setattr(extension, attr, flags)
         new_config = CONFIG_TEMPLATE.format(
             py_version=py_version,
-            have_miniexp_io_t=djvulibre_version >= Version("3.5.26")
         )
         self.src_dir = src_dir = os.path.join(self.build_temp, 'src')
         os.makedirs(src_dir, exist_ok=True)
