@@ -598,9 +598,6 @@ class ExpressionWriterTestCase(SexprTestCase):
         self.assertEqual(ecm.exception.errno, errno.ENOSPC)
 
     def test_reentrant(self):
-        if not _ExpressionIO._reentrant:
-            raise self.SkipTest('this test requires DjVuLibre >= 3.5.26')
-
         class File:
             def write(self, s):
                 expr.as_string()
