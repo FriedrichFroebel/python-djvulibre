@@ -25,7 +25,6 @@ from djvu.sexpr import (
     Expression,
     ExpressionSyntaxError,
     Symbol,
-    _ExpressionIO,
     __version__,
 )
 
