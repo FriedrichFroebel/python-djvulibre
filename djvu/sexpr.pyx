@@ -106,7 +106,7 @@ cdef class _ExpressionIO:
     cdef object buffer
     cdef object exc
 
-    _reentrant = HAVE_MINIEXP_IO_T
+    _reentrant = 1
 
     def __init__(self, object stdin=None, object stdout=None, int escape_unicode=True):
         self.stdin = stdin
