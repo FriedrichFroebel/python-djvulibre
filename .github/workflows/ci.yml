@@ -61,7 +61,7 @@ jobs:
     # https://discuss.python.org/t/announcement-pip-23-2-release/29702
     - name: install setuptools
       run:
-        python -m pip install --ugprade setuptools
+        python -m pip install --upgrade setuptools
     - name: install Cython
       run:
         python -m pip install Cython
