@@ -90,9 +90,11 @@ jobs:
     - name: run flake8
       run:
         python -m flake8 tests/ doc/ setup.py
+      if: ${{ matrix.python != '3.12-dev' }}
     - name: run pycodestyle
       run:
         python -m pycodestyle djvu/
+      if: ${{ matrix.python != '3.12-dev' }}
     - name: build sdist
       run:
         python setup.py sdist
