@@ -121,6 +121,18 @@ def get_djvulibre_version():
     return Version(version)
 
 
+CONFIG_TEMPLATE = """
+cdef extern from *:
+    \"\"\"
+    #define PYTHON_DJVULIBRE_VERSION "{py_version}"
+    #define HAVE_MINIEXP_IO_T {have_miniexp_io_t}
+    \"\"\"
+
+    extern const char* PYTHON_DJVULIBRE_VERSION
+    extern const bint HAVE_MINIEXP_IO_T
+"""
+
+
 class BuildExtension(_build_ext):
     name = 'build_ext'
 
@@ -134,10 +146,10 @@ class BuildExtension(_build_ext):
             for attr, flags in compiler_flags.items():
                 getattr(extension, attr)
                 setattr(extension, attr, flags)
-        new_config = [
-            f'DEF PYTHON_DJVULIBRE_VERSION = b"{py_version}"',
-            f'DEF HAVE_MINIEXP_IO_T = {djvulibre_version >= Version("3.5.26")}',
-        ]
+        new_config = CONFIG_TEMPLATE.format(
+            py_version=py_version,
+            have_miniexp_io_t=djvulibre_version >= Version("3.5.26")
+        )
         self.src_dir = src_dir = os.path.join(self.build_temp, 'src')
         os.makedirs(src_dir, exist_ok=True)
         self.config_path = os.path.join(src_dir, 'config.pxi')
@@ -146,7 +158,6 @@ class BuildExtension(_build_ext):
                 old_config = fp.read()
         except IOError:
             old_config = ''
-        new_config = '\n'.join(new_config)
         if new_config.strip() != old_config.strip():
             logger.info(f'creating {self.config_path!r}')
             with open(self.config_path, mode='w') as fd:
