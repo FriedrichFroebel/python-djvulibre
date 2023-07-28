@@ -1,3 +1,16 @@
+python-djvulibre (unreleased) unstable; urgency=low
+
+  [ FriedrichFroebel ]
+  * Port to Python 3. At least Python 3.6 is required now.
+  * Conform to PEP8 coding style.
+  * Set Cython language level to 3.
+  * Remove unused/unsupported djvu.dllpath.
+  * Add support for Cython 3.0 and Python 3.12.
+    + Require Cython >= 0.28.
+    + Drop support for DjVuLibre < 3.5.26.
+
+ -- FriedrichFroebel <>  Fri, 28 Jul 2023 07:38:38 +0200
+
 python-djvulibre (0.8.8) unstable; urgency=low
 
   * Fix possible integer overflow in djvu.decode.PageJob.render().
