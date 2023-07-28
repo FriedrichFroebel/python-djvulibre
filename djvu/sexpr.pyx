@@ -57,28 +57,19 @@ cdef extern from 'libdjvu/miniexp.h':
     void cvar_free 'minivar_free'(cvar_t* v) nogil
     cexpr_t* cvar_ptr 'minivar_pointer'(cvar_t* v) nogil
 
-    IF HAVE_MINIEXP_IO_T:
-        ctypedef cexpr_io_s cexpr_io_t 'miniexp_io_t'
-        struct cexpr_io_s 'miniexp_io_s':
-            int (*puts 'fputs')(cexpr_io_t*, char*)
-            int (*getc 'fgetc')(cexpr_io_t*)
-            int (*ungetc)(cexpr_io_t*, int)
-            void *data[4]
-            int *p_flags
-        void cexpr_io_init 'miniexp_io_init'(cexpr_io_t *cio)
-        enum:
-            cexpr_io_print7bits 'miniexp_io_print7bits'
-        cexpr_t cexpr_read 'miniexp_read_r'(cexpr_io_t *cio)
-        cexpr_t cexpr_print 'miniexp_prin_r'(cexpr_io_t *cio, cexpr_t cexpr)
-        cexpr_t cexpr_printw 'miniexp_pprin_r'(cexpr_io_t *cio, cexpr_t cexpr, int width)
-    ELSE:
-        int io_7bit 'minilisp_print_7bits'
-        int (*io_puts 'minilisp_puts')(char *s)
-        int (*io_getc 'minilisp_getc')()
-        int (*io_ungetc 'minilisp_ungetc')(int c)
-        cexpr_t cexpr_read 'miniexp_read'()
-        cexpr_t cexpr_print 'miniexp_prin'(cexpr_t cexpr)
-        cexpr_t cexpr_printw 'miniexp_pprin'(cexpr_t cexpr, int width)
+    ctypedef cexpr_io_s cexpr_io_t 'miniexp_io_t'
+    struct cexpr_io_s 'miniexp_io_s':
+        int (*puts 'fputs')(cexpr_io_t*, char*)
+        int (*getc 'fgetc')(cexpr_io_t*)
+        int (*ungetc)(cexpr_io_t*, int)
+        void *data[4]
+        int *p_flags
+    void cexpr_io_init 'miniexp_io_init'(cexpr_io_t *cio)
+    enum:
+        cexpr_io_print7bits 'miniexp_io_print7bits'
+    cexpr_t cexpr_read 'miniexp_read_r'(cexpr_io_t *cio)
+    cexpr_t cexpr_print 'miniexp_prin_r'(cexpr_io_t *cio, cexpr_t cexpr)
+    cexpr_t cexpr_printw 'miniexp_pprin_r'(cexpr_io_t *cio, cexpr_t cexpr, int width)
 
 
 cdef extern from 'stdio.h':
@@ -105,180 +96,90 @@ symbol_dict = weakref.WeakValueDictionary()
 cdef object codecs
 import codecs
 
-IF not HAVE_MINIEXP_IO_T:
-    cdef Lock _myio_lock
-    _myio_lock = allocate_lock()
-
 
 cdef class _ExpressionIO:
-    IF HAVE_MINIEXP_IO_T:
-        cdef cexpr_io_t cio
-        cdef int flags
-    ELSE:
-        cdef int (*backup_io_puts)(const char *s)
-        cdef int (*backup_io_getc)()
-        cdef int (*backup_io_ungetc)(int c)
-        cdef int backup_io_7bit
+    cdef cexpr_io_t cio
+    cdef int flags
     cdef object stdin 'stdin_fp'
     cdef object stdout 'stdout_fp'
     cdef int stdout_binary
     cdef object buffer
     cdef object exc
 
-    _reentrant = HAVE_MINIEXP_IO_T
-
     def __init__(self, object stdin=None, object stdout=None, int escape_unicode=True):
-        IF not HAVE_MINIEXP_IO_T:
-            global io_7bit, io_puts, io_getc, io_ungetc
-            global _myio
-            with nogil:
-                acquire_lock(_myio_lock, WAIT_LOCK)
-            self.backup_io_7bit = io_7bit
-            self.backup_io_puts = io_puts
-            self.backup_io_getc = io_getc
-            self.backup_io_ungetc = io_ungetc
         self.stdin = stdin
         self.stdout = stdout
         self.stdout_binary = not hasattr(stdout, 'encoding')
         self.buffer = []
         self.exc = None
-        IF HAVE_MINIEXP_IO_T:
-            cexpr_io_init(&self.cio)
-            self.cio.data[0] = <void*>self
-            self.cio.getc = _myio_getc
-            self.cio.ungetc = _myio_ungetc
-            self.cio.puts = _myio_puts
-            if escape_unicode:
-                self.flags = cexpr_io_print7bits
-            else:
-                self.flags = 0
-            self.cio.p_flags = &self.flags
-        ELSE:
-            io_getc = _myio_getc
-            io_ungetc = _myio_ungetc
-            io_puts = _myio_puts
-            io_7bit = escape_unicode
-            _myio = self
+        cexpr_io_init(&self.cio)
+        self.cio.data[0] = <void*>self
+        self.cio.getc = _myio_getc
+        self.cio.ungetc = _myio_ungetc
+        self.cio.puts = _myio_puts
+        if escape_unicode:
+            self.flags = cexpr_io_print7bits
+        else:
+            self.flags = 0
+        self.cio.p_flags = &self.flags
 
     @cython.final
     cdef close(self):
-        IF not HAVE_MINIEXP_IO_T:
-            global io_7bit, io_puts, io_getc, io_ungetc
-            global _myio
-            _myio = None
         self.stdin = None
         self.stdout = None
         self.buffer = None
-        IF not HAVE_MINIEXP_IO_T:
-            io_7bit = self.backup_io_7bit
-            io_puts = self.backup_io_puts
-            io_getc = self.backup_io_getc
-            io_ungetc = self.backup_io_ungetc
         try:
             if self.exc is not None:
                 raise self.exc[0], self.exc[1], self.exc[2]
         finally:
-            IF not HAVE_MINIEXP_IO_T:
-                release_lock(_myio_lock)
             self.exc = None
 
-    IF HAVE_MINIEXP_IO_T:
+    @cython.final
+    cdef cexpr_t read(self):
+        return cexpr_read(&self.cio)
 
-        @cython.final
-        cdef cexpr_t read(self):
-            return cexpr_read(&self.cio)
+    @cython.final
+    cdef cexpr_t print_(self, cexpr_t cexpr):
+        return cexpr_print(&self.cio, cexpr)
 
-        @cython.final
-        cdef cexpr_t print_(self, cexpr_t cexpr):
-            return cexpr_print(&self.cio, cexpr)
+    @cython.final
+    cdef cexpr_t printw(self, cexpr_t cexpr, int width):
+        return cexpr_printw(&self.cio, cexpr, width)
 
-        @cython.final
-        cdef cexpr_t printw(self, cexpr_t cexpr, int width):
-            return cexpr_printw(&self.cio, cexpr, width)
+cdef int _myio_puts(cexpr_io_t* cio, const char *s) noexcept:
+    cdef _ExpressionIO io
+    xio = <_ExpressionIO> cio.data[0]
+    try:
+        if xio.stdout_binary:
+            xio.stdout.write(s)
+        else:
+            xio.stdout.write(decode_utf8(s))
+    except Exception:
+        xio.exc = sys.exc_info()
+        return EOF
 
-    ELSE:
-
-        @cython.final
-        cdef cexpr_t read(self):
-            return cexpr_read()
-
-        @cython.final
-        cdef cexpr_t print_(self, cexpr_t cexpr):
-            return cexpr_print(cexpr)
-
-        @cython.final
-        cdef cexpr_t printw(self, cexpr_t cexpr, int width):
-            return cexpr_printw(cexpr, width)
-
-IF HAVE_MINIEXP_IO_T:
-
-    cdef int _myio_puts(cexpr_io_t* cio, const char *s):
-        cdef _ExpressionIO io
-        xio = <_ExpressionIO> cio.data[0]
-        try:
-            if xio.stdout_binary:
-                xio.stdout.write(s)
-            else:
-                xio.stdout.write(decode_utf8(s))
-        except Exception:
-            xio.exc = sys.exc_info()
+cdef int _myio_getc(cexpr_io_t* cio) noexcept:
+    cdef _ExpressionIO xio
+    cdef int result
+    xio = <_ExpressionIO> cio.data[0]
+    if xio.buffer:
+        return xio.buffer.pop()
+    try:
+        s = xio.stdin.read(1)
+        if not s:
             return EOF
+        if is_unicode(s):
+            s = encode_utf8(s)
+        xio.buffer += reversed(s)
+        return xio.buffer.pop()
+    except Exception:
+        xio.exc = sys.exc_info()
+        return EOF
 
-    cdef int _myio_getc(cexpr_io_t* cio):
-        cdef _ExpressionIO xio
-        cdef int result
-        xio = <_ExpressionIO> cio.data[0]
-        if xio.buffer:
-            return xio.buffer.pop()
-        try:
-            s = xio.stdin.read(1)
-            if not s:
-                return EOF
-            if is_unicode(s):
-                s = encode_utf8(s)
-            xio.buffer += reversed(s)
-            return xio.buffer.pop()
-        except Exception:
-            xio.exc = sys.exc_info()
-            return EOF
-
-    cdef int _myio_ungetc(cexpr_io_t* cio, int c):
-        cdef _ExpressionIO io
-        xio = <_ExpressionIO> cio.data[0]
-        list_append(xio.buffer, c)
-
-ELSE:
-
-    cdef _ExpressionIO _myio
-
-    cdef int _myio_puts(const char *s):
-        try:
-            if _myio.stdout_binary:
-                _myio.stdout.write(s)
-            else:
-                _myio.stdout.write(decode_utf8(s))
-        except Exception:
-            _myio.exc = sys.exc_info()
-            return EOF
-
-    cdef int _myio_getc():
-        cdef int result
-        if _myio.buffer:
-            return _myio.buffer.pop()
-        try:
-            s = _myio.stdin.read(1)
-            if not s:
-                return EOF
-            if is_unicode(s):
-                s = encode_utf8(s)
-            _myio.buffer += reversed(s)
-            return _myio.buffer.pop()
-        except Exception:
-            _myio.exc = sys.exc_info()
-            return EOF
-
-    cdef int _myio_ungetc(int c):
-        list_append(_myio.buffer, c)
+cdef int _myio_ungetc(cexpr_io_t* cio, int c) noexcept:
+    cdef _ExpressionIO io
+    xio = <_ExpressionIO> cio.data[0]
+    list_append(xio.buffer, c)
 
 
 cdef object the_sentinel
