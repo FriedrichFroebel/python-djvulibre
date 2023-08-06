@@ -47,6 +47,7 @@ Differences from upstream
 * Conform to PEP8 coding style.
 * Refactor build to not use the deprecated *distutils* module any more.
 * Drop support for building the package on Windows. I do not use it there and there have not been automated tests for it. If someone wants to get this back to work and help maintaining it, feel free to open an issue.
+* Add support for Cython 3.0, while dropping some old backwards-compatibility code.
 
 .. _Issue #23:
    https://github.com/jwilk-archive/python-djvulibre/issues/23
