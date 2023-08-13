@@ -80,7 +80,7 @@ jobs:
     - name: run mypy
       run: |
         python -m pip install mypy
-        mypy djvu/ private/ tests/
+        mypy djvu/ tests/
     - name: build the docs
       run: |
         python -m pip install sphinx
