@@ -74,6 +74,9 @@ jobs:
     - name: build the extension in-place
       run:
         PYTHONWARNINGS=error::FutureWarning python setup.py build_ext --inplace
+    - name: install the package
+      run:
+        python -m pip install .[dev,examples]
     - name: run tests
       run:
         LC_ALL=C python -m unittest discover tests/ -v
@@ -84,15 +87,17 @@ jobs:
     - name: check reST syntax
       run:
         private/check-rst
-    - name: install flake8
-      run:
-        python -m pip install --upgrade flake8 pep8-naming
     - name: run flake8
       run:
         python -m flake8 tests/ doc/ examples/ setup.py
     - name: run pycodestyle
       run:
         python -m pycodestyle djvu/
+    - name: uninstall
+      run: |
+        cd /
+        pip uninstall -y python-djvulibre
+        set +e; python -c 'import djvu'; [ $? -eq 1 ]
     - name: build sdist
       run:
         python setup.py sdist
