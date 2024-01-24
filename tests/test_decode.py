@@ -74,6 +74,7 @@ from djvu.sexpr import (
 )
 
 from tools import (
+    IMAGES,
     interim_locale,
     get_changelog_version,
     locale_encoding,
@@ -83,9 +84,6 @@ from tools import (
     TestCase,
     wildcard_import,
 )
-
-
-IMAGES = os.path.join(os.path.dirname(__file__), 'images', '')
 
 
 class DecodeTestCase(TestCase):

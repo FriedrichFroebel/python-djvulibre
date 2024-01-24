@@ -14,13 +14,12 @@
 # or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
 # more details.
 
-from __future__ import print_function
-
 import argparse
 import os
 import sys
 
 import djvu.decode
+
 
 def print_text(sexpr, level=0):
     if level > 0:
@@ -33,6 +32,7 @@ def print_text(sexpr, level=0):
             print_text(child, level + 1)
     else:
         print(sexpr)
+
 
 class Context(djvu.decode.Context):
 
@@ -50,12 +50,14 @@ class Context(djvu.decode.Context):
             page.get_info()
             print_text(page.text.sexpr)
 
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('path', metavar='DJVU-FILE')
     options = ap.parse_args()
     context = Context()
     context.process(options.path)
+
 
 if __name__ == '__main__':
     main()

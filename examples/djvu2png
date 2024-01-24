@@ -14,20 +14,23 @@
 # or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
 # more details.
 
-from __future__ import print_function
-
 import argparse
 import os
 import sys
 
-import cairo
+try:
+    import cairo  # pycairo
+except ImportError:
+    import cairocffi as cairo
 import djvu.decode
 import numpy
 
-cairo_pixel_format = cairo.FORMAT_ARGB32
-djvu_pixel_format = djvu.decode.PixelFormatRgbMask(0xFF0000, 0xFF00, 0xFF, bpp=32)
-djvu_pixel_format.rows_top_to_bottom = 1
-djvu_pixel_format.y_top_to_bottom = 0
+
+CAIRO_PIXEL_FORMAT = cairo.FORMAT_ARGB32
+DJVU_PIXEL_FORMAT = djvu.decode.PixelFormatRgbMask(0xFF0000, 0xFF00, 0xFF, bpp=32)
+DJVU_PIXEL_FORMAT.rows_top_to_bottom = 1
+DJVU_PIXEL_FORMAT.y_top_to_bottom = 0
+
 
 class Context(djvu.decode.Context):
 
@@ -45,20 +48,21 @@ class Context(djvu.decode.Context):
             page_job = page.decode(wait=True)
             width, height = page_job.size
             rect = (0, 0, width, height)
-            bytes_per_line = cairo.ImageSurface.format_stride_for_width(cairo_pixel_format, width)
+            bytes_per_line = cairo.ImageSurface.format_stride_for_width(CAIRO_PIXEL_FORMAT, width)
             assert bytes_per_line % 4 == 0
             color_buffer = numpy.zeros((height, bytes_per_line // 4), dtype=numpy.uint32)
-            page_job.render(mode, rect, rect, djvu_pixel_format, row_alignment=bytes_per_line, buffer=color_buffer)
+            page_job.render(mode, rect, rect, DJVU_PIXEL_FORMAT, row_alignment=bytes_per_line, buffer=color_buffer)
             mask_buffer = numpy.zeros((height, bytes_per_line // 4), dtype=numpy.uint32)
             if mode == djvu.decode.RENDER_FOREGROUND:
-                page_job.render(djvu.decode.RENDER_MASK_ONLY, rect, rect, djvu_pixel_format, row_alignment=bytes_per_line, buffer=mask_buffer)
+                page_job.render(djvu.decode.RENDER_MASK_ONLY, rect, rect, DJVU_PIXEL_FORMAT, row_alignment=bytes_per_line, buffer=mask_buffer)
                 mask_buffer <<= 24
                 color_buffer |= mask_buffer
             color_buffer ^= 0xFF000000
-            surface = cairo.ImageSurface.create_for_data(color_buffer, cairo_pixel_format, width, height)
+            surface = cairo.ImageSurface.create_for_data(color_buffer, CAIRO_PIXEL_FORMAT, width, height)
             surface.write_to_png(png_path)
             # Multi-page documents are not yet supported:
             break
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -72,6 +76,7 @@ def main():
     options = parser.parse_args(sys.argv[1:])
     context = Context()
     context.process(options.djvu_path, options.png_path, options.mode)
+
 
 if __name__ == '__main__':
     main()

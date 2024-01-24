@@ -14,8 +14,6 @@
 # or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
 # more details.
 
-from __future__ import print_function
-
 import argparse
 import os
 import sys
@@ -24,7 +22,9 @@ import djvu.const
 import djvu.decode
 import djvu.sexpr
 
+
 EMPTY_TEXT_SEXPR = djvu.sexpr.Expression([djvu.const.TEXT_ZONE_PAGE, 0, 0, 0, 0, ''])
+
 
 class ArgumentParser(argparse.ArgumentParser):
 
@@ -49,6 +49,7 @@ class ArgumentParser(argparse.ArgumentParser):
             self.error('Unable to parse page numbers')
         return options
 
+
 def crop_text(sexpr, width, height):
     if isinstance(sexpr, djvu.sexpr.ListExpression) and len(sexpr) >= 5:
         tp = sexpr[0]
@@ -66,6 +67,7 @@ def crop_text(sexpr, width, height):
         return djvu.sexpr.Expression([tp, x0, y0, x1, y1] + children)
     else:
         return sexpr
+
 
 class Context(djvu.decode.Context):
 
@@ -100,11 +102,13 @@ class Context(djvu.decode.Context):
             self.process_page(page).print_into(sed_file)
             sed_file.write('\n.\n\n')
 
+
 def main():
     parser = ArgumentParser()
     options = parser.parse_args()
     context = Context()
     context.process(options.path, options.pages)
+
 
 if __name__ == '__main__':
     main()
