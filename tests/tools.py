@@ -41,6 +41,10 @@ def get_changelog_version():
     return line.split()[1].strip('()')
 
 
+IMAGES = os.path.join(os.path.dirname(__file__), 'images', '')
+EXAMPLES = os.path.join(os.path.dirname(__file__), '..', 'examples', '')
+
+
 class TestCase(_TestCase):
     SkipTest = SkipTest
     maxDiff = None

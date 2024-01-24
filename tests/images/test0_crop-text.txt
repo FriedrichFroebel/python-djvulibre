@@ -1,0 +1,11 @@
+remove-txt
+select 1
+set-txt
+(page 0 0 2550 3300 (line 466 2712 978 2777 (word 466 2727 493 2776 "1") (word 570 2726 773 2775 "Lorem") (word 794 2712 978 2777 "ipsum")) (line 463 2604 2079 2649 (word 463 2604 573 2649 "Optio") (word 593 2604 859 2649 "reprehenderit") (word 878 2615 1062 2649 "molestias") (word 1085 2615 1180 2644 "amet") (word 1200 2604 1368 2649 "aliquam,") (word 1393 2604 1574 2649 "similique") (word 1594 2604 1830 2649 "doloremque") (word 1851 2604 1938 2649 "fuga") (word 1957 2615 2079 2649 "labore")) (line 462 2544 2081 2589 (word 462 2544 688 2589 "voluptatum") (word 701 2544 933 2589 "voluptatem,") (word 949 2555 1135 2589 "commodi") (word 1149 2544 1256 2589 "culpa") (word 1270 2544 1446 2589 "voluptas,") (word 1462 2555 1587 2589 "officia") (word 1601 2555 1738 2584 "tenetur") (word 1751 2544 1918 2589 "expedita") (word 1932 2544 2081 2589 "quidem")) (line 461 2483 2078 2528 (word 461 2494 521 2528 "hic") (word 534 2483 683 2528 "repellat") (word 695 2494 884 2528 "molestiae") (word 898 2483 977 2528 "quis") (word 993 2494 1204 2517 "accusamus") (word 1219 2494 1362 2528 "dolores") (word 1376 2483 1629 2528 "repudiandae,") (word 1644 2483 1793 2528 "quidem") (word 1805 2494 1842 2528 "in") (word 1856 2494 1900 2528 "ad") (word 1914 2483 2078 2528 "voluptas")) (line 462 2423 1561 2468 (word 462 2423 621 2468 "eligendi") (word 635 2434 790 2468 "maiores") (word 805 2423 946 2468 "placeat") (word 959 2434 1003 2457 "ex") (word 1018 2434 1244 2463 "consectetur") (word 1258 2434 1292 2463 "at") (word 1305 2434 1443 2463 "tenetur") (word 1457 2433 1561 2463 "amet.")) (line 1264 375 1278 409 (word 1264 375 1278 409 "1")))
+.
+
+select 2
+set-txt
+(page 0 0 2550 3300 (line 462 2712 910 2777 (word 462 2727 495 2776 "2") (word 571 2712 910 2777 "Hyperlinks")) (line 462 2599 714 2641 (word 462 2599 532 2641 "2.1") (word 597 2599 714 2640 "local")) (line 464 2505 544 2540 (word 464 2505 544 2540 "\342\206\2221")) (line 462 2358 772 2400 (word 462 2358 535 2400 "2.2") (word 598 2358 772 2397 "remote")) (line 463 2256 964 2298 (word 463 2256 964 2298 "http://jwilk.net/")) (line 1260 375 1282 409 (word 1260 375 1282 409 "2")))
+.
+
