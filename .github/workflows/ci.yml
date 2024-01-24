@@ -76,13 +76,12 @@ jobs:
         PYTHONWARNINGS=error::FutureWarning python setup.py build_ext --inplace
     - name: install the package
       run:
-        python -m pip install .[dev,examples]
+        python -m pip install .[dev,docs,examples]
     - name: run tests
       run:
         LC_ALL=C python -m unittest discover tests/ -v
     - name: build the docs
-      run: |
-        python -m pip install sphinx
+      run:
         PYTHONPATH=$PWD sphinx-build -W -b doctest doc/api/ tmp
     - name: check reST syntax
       run:

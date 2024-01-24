@@ -248,6 +248,9 @@ setup_params = dict(
             'flake8',
             'pep8-naming',
         ],
+        'docs': [
+            'sphinx',
+        ],
         'examples': [
             # djvu2png
             # 'cairocffi',  # Broken: https://github.com/Kozea/cairocffi/issues/223
