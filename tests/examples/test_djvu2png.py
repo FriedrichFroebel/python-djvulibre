@@ -12,7 +12,7 @@ class Djvu2PngTestCase(TestCase):
     def setUpClass(cls):
         if find_spec('numpy') is None:
             raise SkipTest('Package numpy not found.')
-        if find_spec('cairocffi') is None and find_spec('pycairo') is None:
+        if find_spec('cairocffi') is None and find_spec('cairo') is None:
             raise SkipTest('Cairo bindings not found.')
 
     def check(self, mode: str):
