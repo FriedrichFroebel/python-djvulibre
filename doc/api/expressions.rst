@@ -145,5 +145,3 @@ Varieties
 
    >>> EMPTY_LIST
    Expression([])
-
-.. vim:ts=3 sts=3 sw=3 et

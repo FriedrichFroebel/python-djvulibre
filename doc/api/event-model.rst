@@ -118,5 +118,3 @@ The DDJVU API hides this complexity with a familiar event model.
    .. method:: wait()
 
       Wait until the job is done.
-
-.. vim:ts=3 sts=3 sw=3 et

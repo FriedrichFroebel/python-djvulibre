@@ -169,5 +169,3 @@ Render modes
 .. data:: djvu.decode.RENDER_FOREGROUND
 
    Render color foreground layer.
-
-.. vim:ts=3 sts=3 sw=3 et

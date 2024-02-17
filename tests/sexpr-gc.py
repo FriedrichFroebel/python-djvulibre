@@ -1,6 +1,5 @@
-# encoding=UTF-8
-
 # Copyright © 2007-2015 Jakub Wilk <jwilk@jwilk.net>
+# Copyright © 2022-2024 FriedrichFroebel
 #
 # This file is part of python-djvulibre.
 #
@@ -39,5 +38,3 @@ while True:
     mb = mem_info() / (1 << 20)
     print(f'{mb:.2f}M')
     [djvu.sexpr.Expression(4) for i in range(step)]
-
-# vim:ts=4 sts=4 sw=4 et

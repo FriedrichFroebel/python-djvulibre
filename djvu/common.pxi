@@ -1,4 +1,5 @@
 # Copyright © 2008-2018 Jakub Wilk <jwilk@jwilk.net>
+# Copyright © 2022-2024 FriedrichFroebel
 #
 # This file is part of python-djvulibre.
 #
@@ -122,5 +123,3 @@ cdef int typecheck(object o, object type):
 
 cdef void raise_instantiation_error(object cls) except *:
     raise TypeError(f"cannot create '{get_type_name(cls)}' instances")
-
-# vim:ts=4 sts=4 sw=4 et ft=pyrex

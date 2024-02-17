@@ -1,6 +1,5 @@
-# encoding=UTF-8
-
 # Copyright © 2009-2021 Jakub Wilk <jwilk@jwilk.net>
+# Copyright © 2022-2024 FriedrichFröbel
 #
 # This file is part of python-djvulibre.
 #
@@ -64,5 +63,3 @@ def setup(app):
         # deprecated in Sphinx 1.8, removed in 4.0
         add_css_file = app.add_stylesheet
     add_css_file('docutils-math.css')
-
-# vim:ts=4 sts=4 sw=4 et

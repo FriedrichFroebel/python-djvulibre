@@ -230,5 +230,3 @@ DjVu documents
    Document decoding job.
 
    Use :attr:`Document.decoding_job` to obtain instances of this class.
-
-.. vim:ts=3 sts=3 sw=3 et

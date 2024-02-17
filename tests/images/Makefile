@@ -1,4 +1,5 @@
 # Copyright © 2010-2018 Jakub Wilk <jwilk@jwilk.net>
+# Copyright © 2024 FriedrichFroebel
 #
 # This file is part of python-djvulibre.
 #
@@ -32,5 +33,3 @@ clean:
 	rm -f $(pdf_files) *.log *.out *.aux
 
 .error = GNU make is required
-
-# vim:ts=4 sts=4 sw=4 noet

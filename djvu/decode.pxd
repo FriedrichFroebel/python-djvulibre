@@ -1,4 +1,5 @@
 # Copyright © 2007-2020 Jakub Wilk <jwilk@jwilk.net>
+# Copyright © 2022-2024 FriedrichFroebel
 #
 # This file is part of python-djvulibre.
 #
@@ -394,5 +395,3 @@ cdef class ProgressMessage(Message):
 
 cdef class Thumbnail:
     cdef Page _page
-
-# vim:ts=4 sts=4 sw=4 et ft=pyrex

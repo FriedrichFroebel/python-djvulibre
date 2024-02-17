@@ -1,6 +1,5 @@
-# encoding=UTF-8
-
 # Copyright © 2015-2021 Jakub Wilk <jwilk@jwilk.net>
+# Copyright © 2022-2024 FriedrichFroebel
 #
 # This file is part of python-djvulibre.
 #
@@ -12,8 +11,3 @@
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 # or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
 # more details.
-
-type(b'')  # Python >= 2.6 is required
-type(u'')  # Python 2.X or >= 3.3 is required
-
-# vim:ts=4 sts=4 sts=4 sw=4 et

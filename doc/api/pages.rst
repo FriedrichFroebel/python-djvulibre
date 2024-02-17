@@ -272,5 +272,3 @@ Document pages
         actual image data.
 
       :raise NotAvailable: when no thumbnail is available.
-
-.. vim:ts=3 sts=3 sw=3 et

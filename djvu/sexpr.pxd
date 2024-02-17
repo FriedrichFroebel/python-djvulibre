@@ -1,4 +1,5 @@
 # Copyright © 2007-2018 Jakub Wilk <jwilk@jwilk.net>
+# Copyright © 2022-2024 FriedrichFroebel
 #
 # This file is part of python-djvulibre.
 #
@@ -30,5 +31,3 @@ cdef class _WrappedCExpr:
 
 cdef object public_c2py(cexpr_t)
 cdef _WrappedCExpr public_py2c(object)
-
-# vim:ts=4 sts=4 sw=4 et ft=pyrex

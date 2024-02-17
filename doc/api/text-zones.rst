@@ -122,5 +122,3 @@ Text zones
     <djvu.const.TextZoneType: region>: '\x1d',
     <djvu.const.TextZoneType: column>: '\x0b',
     <djvu.const.TextZoneType: page>: '\x0c'}
-
-.. vim:ts=3 sts=3 sw=3 et

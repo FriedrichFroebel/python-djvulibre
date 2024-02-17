@@ -1,6 +1,5 @@
-# encoding=UTF-8
-
 # Copyright © 2007-2021 Jakub Wilk <jwilk@jwilk.net>
+# Copyright © 2022-2024 FriedrichFroebel
 #
 # This file is part of python-djvulibre.
 #
@@ -717,5 +716,3 @@ class WildcardImportTestCase(TestCase):
                 'SymbolExpression'
             ]
         )
-
-# vim:ts=4 sts=4 sw=4 et
