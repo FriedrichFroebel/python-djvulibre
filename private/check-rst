@@ -33,7 +33,8 @@ then
 fi
 if [ $# -eq 0 ]
 then
-    grep -r -w -l ft=rst "${root}doc/"
+    echo 'doc/README'
+    echo 'doc/todo'
 else
     printf '%s\n' "$@"
 fi |
