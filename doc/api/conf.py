@@ -25,9 +25,14 @@ source_suffix = '.rst'
 source_encoding = 'UTF-8'
 master_doc = 'index'
 
-import setup as _setup  # noqa: E402
-project = _setup.setup_params['name']
-version = release = _setup.py_version
+try:
+    import setup as _setup  # noqa: E402
+    project = _setup.setup_params['name']
+    version = release = _setup.py_version
+except ImportError:
+    from importlib.metadata import version as _version
+    project = 'python-djvulibre'
+    version = _version(project)
 
 pygments_style = 'sphinx'
 

@@ -6,11 +6,6 @@ build:
     python: "3.12"
   apt_packages:
     - libdjvulibre-dev
-  jobs:
-    pre_build:
-      - python -m pip install Cython
-      - python setup.py build_ext --inplace
-      - export PYTHONPATH=$PWD
 
 sphinx:
   configuration: doc/api/conf.py
