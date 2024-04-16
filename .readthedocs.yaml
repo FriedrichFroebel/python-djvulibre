@@ -8,6 +8,7 @@ build:
     - libdjvulibre-dev
   jobs:
     pre_build:
+      - python -m pip install Cython
       - python setup.py build_ext --inplace
       - export PYTHONPATH=$PWD
 
