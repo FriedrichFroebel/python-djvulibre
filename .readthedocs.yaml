@@ -6,6 +6,7 @@ build:
     python: "3.12"
   apt_packages:
     - libdjvulibre-dev
+    - graphviz
 
 sphinx:
   configuration: doc/api/conf.py
