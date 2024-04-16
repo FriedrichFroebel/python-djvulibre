@@ -8,8 +8,8 @@ build:
     - libdjvulibre-dev
   jobs:
     pre_build:
-      - python -m pip install Cython setuptools
       - python setup.py build_ext --inplace
+      - export PYTHONPATH=$PWD
 
 sphinx:
   configuration: doc/api/conf.py
