@@ -8,7 +8,7 @@ build:
     - libdjvulibre-dev
   jobs:
     pre_build:
-      - python -m pip install Cython
+      - python -m pip install Cython setuptools
       - python setup.py build_ext --inplace
 
 sphinx:
