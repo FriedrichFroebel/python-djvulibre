@@ -1,7 +1,7 @@
 Overview
 ========
 
-**python-djvulibre** is a set of Python bindings for
+**djvulibre-python** is a set of Python bindings for
 the DjVuLibre_ library, an open source implementation of DjVu_.
 
 .. _DjVuLibre:
@@ -12,7 +12,7 @@ the DjVuLibre_ library, an open source implementation of DjVu_.
 Prerequisites
 =============
 
-The following software is required to build python-djvulibre:
+The following software is required to build djvulibre-python:
 
 * DjVuLibre (≥ 3.5.26)
 * Python_ (≥ 3.6)
@@ -32,6 +32,19 @@ Additionally, the following software is needed to run the tests:
    https://wiki.freedesktop.org/www/Software/pkg-config/
 .. _Ghostscript:
    https://www.ghostscript.com/
+
+Installation
+============
+
+The easiest way to install djvulibre-python is from PyPI::
+
+    pip install djvulibre-python
+
+Alternatively, you can use djvulibre-python without installing it, straight out of an unpacked source tarball or a VCS checkout.
+
+It's also possible to install it from source for the current interpreter with::
+
+   pip install .
 
 About this fork
 ===============
@@ -55,6 +68,6 @@ Differences from upstream
 Acknowledgment
 ==============
 
-python-djvulibre development was supported by the Polish Ministry of Science
+Initial python-djvulibre development was supported by the Polish Ministry of Science
 and Higher Education's grant no. N N519 384036 (2009–2012,
 https://bitbucket.org/jsbien/ndt).

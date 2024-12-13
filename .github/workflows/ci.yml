@@ -95,7 +95,7 @@ jobs:
     - name: uninstall
       run: |
         cd /
-        pip uninstall -y python-djvulibre
+        pip uninstall -y djvulibre-python
         set +e; python -c 'import djvu'; [ $? -eq 1 ]
     - name: build sdist
       run:
@@ -115,7 +115,7 @@ jobs:
     - name: uninstall
       run: |
         cd /
-        pip uninstall -y python-djvulibre
+        pip uninstall -y djvulibre-python
         set +e; python -c 'import djvu'; [ $? -eq 1 ]
     - name: build wheel
       run:
@@ -135,7 +135,7 @@ jobs:
     - name: uninstall
       run: |
         cd /
-        pip uninstall -y python-djvulibre
+        pip uninstall -y djvulibre-python
         set +e; python -c 'import djvu'; [ $? -eq 1 ]
     - name: install directly
       run:
