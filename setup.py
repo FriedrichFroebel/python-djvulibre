@@ -222,6 +222,7 @@ meta = dict(
     license='GNU GPL 2',
     description='Python support for the DjVu image format',
     long_description=__doc__.strip(),
+    long_description_content_type='text/x-rst',
     classifiers=classifiers,
     url='https://github.com/FriedrichFroebel/python-djvulibre',
 )
