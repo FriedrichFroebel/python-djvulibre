@@ -205,7 +205,7 @@ class Sdist(_sdist):
 classifiers = '''
 Development Status :: 4 - Beta
 Intended Audience :: Developers
-License :: OSI Approved :: GNU General Public License (GPL)
+License :: OSI Approved :: GNU General Public License v2 (GPLv2)
 Operating System :: POSIX
 Programming Language :: Cython
 Programming Language :: Python
@@ -218,8 +218,9 @@ Topic :: Text Processing
 meta = dict(
     name='djvulibre-python',
     version=py_version,
-    author='Jakub Wilk, FriedrichFröbel (fork)',
-    license='GNU GPL 2',
+    author='Jakub Wilk',
+    maintainer='FriedrichFröbel',
+    license='GPL-2.0-only',
     description='Python support for the DjVu image format',
     long_description=__doc__.strip(),
     long_description_content_type='text/x-rst',
