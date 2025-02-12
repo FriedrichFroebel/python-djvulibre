@@ -27,7 +27,7 @@ jobs:
         sudo apt-get update
     - name: apt install deps
       run: |
-        sudo apt-get install language-pack-ja ghostscript
+        sudo apt-get install language-pack-ja ghostscript libcairo2-dev
     - name: install ccache
       run: |
         sudo apt-get install ccache
