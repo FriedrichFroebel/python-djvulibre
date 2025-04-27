@@ -525,7 +525,7 @@ class PageJobsTestCase(TestCase):
         pixel_format = PixelFormatRgbMask(0xFF0000, 0xFF00, 0xFF, bpp=32)
         self.assertIs(page_job.render(RENDER_COLOR, (0, 0, 10, 10), (0, 0, 2, 2), pixel_format, 1, buffer), buffer)
         s = buffer.tobytes()
-        self.assertEqual(s, b'\xFF\xFF\xFF\x00' * 4)
+        self.assertEqual(s, (b'\x00\xFF\xFF\xFF' if sys.byteorder == 'big' else b'\xFF\xFF\xFF\x00') * 4)
 
         if sys.version_info >= (3, 3):
             buffer = bytearray(16)
@@ -535,7 +535,7 @@ class PageJobsTestCase(TestCase):
                 memview
             )
             s = bytes(buffer)
-            self.assertEqual(s, b'\xFF\xFF\xFF\x00' * 4)
+            self.assertEqual(s, (b'\x00\xFF\xFF\xFF' if sys.byteorder == 'big' else b'\xFF\xFF\xFF\x00') * 4)
 
 
 class ThumbnailsTestCase(TestCase):
