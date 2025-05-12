@@ -1088,7 +1088,7 @@ cdef class Document:
         else:
             if file is not None:
                 raise TypeError('file must be None if indirect is specified')
-            if not is_string(indirect):
+            if not is_unicode(indirect):
                 raise TypeError('indirect must be a string')
             file_wrapper = None
             output = NULL
@@ -1237,7 +1237,7 @@ cdef class Document:
                 raise TypeError('level must be an integer')
             list_append(options, f'--level={level}')
         if orientation is not None:
-            if not is_string(orientation):
+            if not is_unicode(orientation):
                 raise TypeError('orientation must be a string or none')
             list_append(options, '--orientation=' + orientation)
         if not is_int(mode):
@@ -1271,7 +1271,7 @@ cdef class Document:
         if text:
             list_append(options, '--text')
         if booklet is not None:
-            if not is_string(booklet):
+            if not is_unicode(booklet):
                 raise TypeError('booklet must be a string or none')
             if options not in PRINT_BOOKLET_OPTIONS:
                 raise ValueError('booklet must be equal to PRINT_BOOKLET_NO, or PRINT_BOOKLET_YES, or PRINT_BOOKLET_VERSO, or PRINT_BOOKLET_RECTO')

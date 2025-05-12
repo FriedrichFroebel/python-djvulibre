@@ -26,13 +26,10 @@ from cpython.mem cimport PyMem_Free as py_free  # noqa: F401
 
 # Python numbers:
 
-from cpython cimport (
-    PyInt_Check as is_short_int,
-    PyLong_Check as is_long_int,
-)
+from cpython cimport PyLong_Check
 
 cdef int is_int(object o):
-    return is_short_int(o) or is_long_int(o)
+    return PyLong_Check(o)
 
 from cpython cimport (
     PyNumber_Check as is_number,  # noqa: F401
@@ -45,7 +42,6 @@ from cpython cimport PyNumber_Long as int  # noqa: F401
 
 from cpython cimport (
     PyUnicode_Check as is_unicode,  # noqa: F401
-    PyString_Check as is_string,  # noqa: F401
     PyBytes_Check as is_bytes,  # noqa: F401
 )
 
