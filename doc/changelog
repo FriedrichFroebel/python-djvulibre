@@ -1,3 +1,18 @@
+djvulibre-python (0.9.2) unstable; urgency=low
+
+  [ FriedrichFroebel ]
+  * Make compatible to Cython >= 3.1.0
+  * Temporarily disable some assertions for export_ps
+    due to unresolved failures
+
+  [ Ianis Vasilev ]
+  * Add missing test files to source distributions
+
+  [ Colin Watson ]
+  * Fix tests for big-endian systems
+
+ -- FriedrichFroebel <>  Fri, 16 May 2025 16:40:00 +0200
+
 djvulibre-python (0.9.1) unstable; urgency=low
 
   [ FriedrichFroebel ]
