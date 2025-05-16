@@ -26,7 +26,6 @@ import sys
 
 import setuptools
 from setuptools.command.build_ext import build_ext as _build_ext
-from setuptools.command.sdist import sdist as _sdist
 from wheel.bdist_wheel import bdist_wheel
 
 logger = logging.getLogger(__name__)
@@ -188,24 +187,9 @@ class BuildExtension(_build_ext):
             self.make_file(depends, target, build_c, [source, target])
 
 
-class Sdist(_sdist):
-    name = 'sdist'
-
-    def maybe_move_file(self, base_dir, src, dst):
-        src = os.path.join(base_dir, src)
-        dst = os.path.join(base_dir, dst)
-        if os.path.exists(src):
-            self.move_file(src, dst)
-
-    def make_release_tree(self, base_dir, files):
-        _sdist.make_release_tree(self, base_dir, files)
-        self.maybe_move_file(base_dir, 'COPYING', 'doc/COPYING')
-
-
 classifiers = '''
 Development Status :: 4 - Beta
 Intended Audience :: Developers
-License :: OSI Approved :: GNU General Public License v2 (GPLv2)
 Operating System :: POSIX
 Programming Language :: Cython
 Programming Language :: Python
@@ -240,7 +224,7 @@ setup_params = dict(
     ],
     cmdclass=dict(
         (cmd.__name__ if not hasattr(cmd, 'name') else cmd.name, cmd)
-        for cmd in (BuildExtension, Sdist, bdist_wheel)
+        for cmd in (BuildExtension, bdist_wheel)
         if cmd is not None
     ),
     py_modules=['djvu.const'],
