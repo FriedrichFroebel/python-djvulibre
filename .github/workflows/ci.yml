@@ -7,7 +7,7 @@ on:
 
 env:
   # Allow automated checks.
-  DJVULIBRE_VERSION: 3.5.28
+  DJVULIBRE_VERSION: 3.5.29
 
 jobs:
   main:
