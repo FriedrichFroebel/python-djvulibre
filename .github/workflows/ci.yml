@@ -13,7 +13,7 @@ permissions: {}
 
 env:
   # Allow automated checks.
-  DJVULIBRE_VERSION: 3.5.29
+  DJVULIBRE_VERSION: 3.5.30
 
 jobs:
   main:
