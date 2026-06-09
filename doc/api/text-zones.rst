@@ -115,7 +115,6 @@ Text zones
    Dictionary that maps text types to their separators.
 
 .. doctest::
-   :pyversion: < 3.15
 
    >>> pprint(TEXT_ZONE_SEPARATORS)
    {<djvu.const.TextZoneType: char>: '',
@@ -125,17 +124,3 @@ Text zones
     <djvu.const.TextZoneType: region>: '\x1d',
     <djvu.const.TextZoneType: column>: '\x0b',
     <djvu.const.TextZoneType: page>: '\x0c'}
-
-.. doctest::
-   :pyversion: >= 3.15
-
-   >>> pprint(TEXT_ZONE_SEPARATORS)
-   {
-       <djvu.const.TextZoneType: char>: '',
-       <djvu.const.TextZoneType: word>: ' ',
-       <djvu.const.TextZoneType: line>: '\n',
-       <djvu.const.TextZoneType: para>: '\x1f',
-       <djvu.const.TextZoneType: region>: '\x1d',
-       <djvu.const.TextZoneType: column>: '\x0b',
-       <djvu.const.TextZoneType: page>: '\x0c',
-   }
