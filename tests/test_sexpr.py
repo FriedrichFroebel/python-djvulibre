@@ -137,7 +137,7 @@ class SymbolsTestCase(SexprTestCase):
         self.check('eggs')
 
     def test_nonascii(self):
-        x = self.check('ветчина'.encode('UTF-8'), 'ветчина')
+        x = self.check('ветчина'.encode(), 'ветчина')
         y = self.check('ветчина', 'ветчина')
         self.assertIs(x, y)
 
@@ -187,7 +187,7 @@ class SymbolExpressionsTestCase(SexprTestCase):
         self.check('eggs', 'eggs')
 
     def test_nonascii(self):
-        x = self.check('ветчина'.encode('UTF-8'), '|ветчина|')
+        x = self.check('ветчина'.encode(), '|ветчина|')
         y = self.check('ветчина', '|ветчина|')
         self.assertEqual(x, y)
         self.assertEqual(hash(x), hash(y))
@@ -590,7 +590,7 @@ class ExpressionWriterTestCase(SexprTestCase):
         finally:
             try:
                 fp.close()
-            except IOError:
+            except OSError:
                 if ecm is None:
                     raise
         self.assertEqual(ecm.exception.errno, errno.ENOSPC)

@@ -109,7 +109,7 @@ def skip_unless_translation_exists(lang):
         with interim_locale(LC_ALL=lang):
             try:
                 open(__file__ + '/')
-            except EnvironmentError as exc:
+            except OSError as exc:
                 messages[lang] = str(exc)
     messages = set(messages.values())
     assert 1 <= len(messages) <= 2, messages

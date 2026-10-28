@@ -62,7 +62,7 @@ def run_pkgconfig(*cmdline):
             cmdline,
             stdout=ipc.PIPE, stderr=ipc.PIPE
         )
-    except EnvironmentError as exc:
+    except OSError as exc:
         msg = f'cannot execute pkg-config: {exc.strerror}'
         logger.warning(msg)
         return
@@ -149,9 +149,9 @@ class BuildExtension(_build_ext):
         os.makedirs(src_dir, exist_ok=True)
         self.config_path = os.path.join(src_dir, 'config.pxi')
         try:
-            with open(self.config_path, 'rt') as fp:
+            with open(self.config_path) as fp:
                 old_config = fp.read()
-        except IOError:
+        except OSError:
             old_config = ''
         if new_config.strip() != old_config.strip():
             logger.info(f'creating {self.config_path!r}')
@@ -222,11 +222,11 @@ setup_params = dict(
         )
         for name in ext_modules
     ],
-    cmdclass=dict(
-        (cmd.__name__ if not hasattr(cmd, 'name') else cmd.name, cmd)
+    cmdclass={
+        cmd.__name__ if not hasattr(cmd, 'name') else cmd.name: cmd
         for cmd in (BuildExtension, bdist_wheel)
         if cmd is not None
-    ),
+    },
     py_modules=['djvu.const'],
     extras_require={
         'dev': [

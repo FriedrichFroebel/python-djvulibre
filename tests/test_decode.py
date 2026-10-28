@@ -240,7 +240,7 @@ class DocumentsTestCase(DecodeTestCase):
         dump = document.files[0].dump
         self.assertIsInstance(dump, str)
         self.assertEqual(
-            [line for line in dump.splitlines()],
+            [*dump.splitlines()],
             [
                 '  FORM:DJVU [83] ',
                 '    INFO [10]         DjVu 64x48, v24, 300 dpi, gamma=2.2',
@@ -264,7 +264,7 @@ class DocumentsTestCase(DecodeTestCase):
         dump = document.files[0].dump
         self.assertIsInstance(dump, str)
         self.assertEqual(
-            [line for line in dump.splitlines()],
+            [*dump.splitlines()],
             [
                 '  FORM:DJVU [83] ',
                 '    INFO [10]         DjVu 64x48, v24, 300 dpi, gamma=2.2',
@@ -340,7 +340,7 @@ class DocumentsTestCase(DecodeTestCase):
             stdout = stdout.split(b'\n')
             stdout0 = (
                 [b'      shared_anno.iff -> shared_anno.iff'] +
-                [f'      p{n:04}.djvu -> p{n:04}.djvu'.encode('UTF-8') for n in range(1, 3)]
+                [f'      p{n:04}.djvu -> p{n:04}.djvu'.encode() for n in range(1, 3)]
             )
             self.assertEqual(len(stdout), 7)
             self.assertEqual(stdout[2:-2], stdout0)
@@ -527,15 +527,14 @@ class PageJobsTestCase(TestCase):
         s = buffer.tobytes()
         self.assertEqual(s, (b'\x00\xFF\xFF\xFF' if sys.byteorder == 'big' else b'\xFF\xFF\xFF\x00') * 4)
 
-        if sys.version_info >= (3, 3):
-            buffer = bytearray(16)
-            memview = memoryview(buffer).cast('I', shape=(2, 2))
-            self.assertIs(
-                page_job.render(RENDER_COLOR, (0, 0, 10, 10), (0, 0, 2, 2), pixel_format, 1, memview),
-                memview
-            )
-            s = bytes(buffer)
-            self.assertEqual(s, (b'\x00\xFF\xFF\xFF' if sys.byteorder == 'big' else b'\xFF\xFF\xFF\x00') * 4)
+        buffer = bytearray(16)
+        memview = memoryview(buffer).cast('I', shape=(2, 2))
+        self.assertIs(
+            page_job.render(RENDER_COLOR, (0, 0, 10, 10), (0, 0, 2, 2), pixel_format, 1, memview),
+            memview
+        )
+        s = bytes(buffer)
+        self.assertEqual(s, (b'\x00\xFF\xFF\xFF' if sys.byteorder == 'big' else b'\xFF\xFF\xFF\x00') * 4)
 
 
 class ThumbnailsTestCase(TestCase):
